@@ -1,0 +1,37 @@
+	{ 
+		
+		"blobby-egg": [
+			
+				{
+					"density": 10, "friction": 0.2, "bounce": 0.1, 
+					"filter": { "categoryBits": 1, "maskBits": 65535 },
+					"shape": [   24, 142  ,  5, 119  ,  1, 103  ,  1, 89  ,  2, 71  ,  7, 53  ,  64, 149.5  ,  39, 149.5  ]
+				}  ,
+				{
+					"density": 10, "friction": 0.2, "bounce": 0.1, 
+					"filter": { "categoryBits": 1, "maskBits": 65535 },
+					"shape": [   84.5, 140  ,  73, 146.5  ,  52, 1  ,  57, 1  ,  99, 59  ,  103, 77  ,  103, 106  ,  96.5, 126  ]
+				}  ,
+				{
+					"density": 10, "friction": 0.2, "bounce": 0.1, 
+					"filter": { "categoryBits": 1, "maskBits": 65535 },
+					"shape": [   5, 119  ,  24, 142  ,  13, 133  ]
+				}  ,
+				{
+					"density": 10, "friction": 0.2, "bounce": 0.1, 
+					"filter": { "categoryBits": 1, "maskBits": 65535 },
+					"shape": [   77, 13  ,  85, 24  ,  93, 41  ,  99, 59  ,  57, 1  ,  67, 5  ]
+				}  ,
+				{
+					"density": 10, "friction": 0.2, "bounce": 0.1, 
+					"filter": { "categoryBits": 1, "maskBits": 65535 },
+					"shape": [   52, 1  ,  64, 149.5  ,  7, 53  ,  13, 36  ,  24, 18  ,  33, 9  ,  42, 3  ,  48, 1  ]
+				}  ,
+				{
+					"density": 10, "friction": 0.2, "bounce": 0.1, 
+					"filter": { "categoryBits": 1, "maskBits": 65535 },
+					"shape": [   52, 1  ,  73, 146.5  ,  64, 149.5  ]
+				}  
+		]
+		
+	}
