@@ -21,7 +21,7 @@ if(typeof KeyboardJS !== 'undefined'){
 			KeyboardJS.on('e', function(){
             	if(isEmptyObject(playerCollisionWith)){
                 	if(leftplayer.item !== ''){
-	                    var throwingball = b2world.createCircle(leftplayer.item, Game.asset.getImageByName(leftplayer.item), 40, leftplayer.body.GetPosition().x * 40+40, leftplayer.body.GetPosition().y * 40-5, box2d.b2BodyType.b2_dynamicBody)
+	                    var throwingball = b2world.createCircle(leftplayer.item, Game.asset.getImageByName(leftplayer.item), 9, leftplayer.body.GetPosition().x * 40+40, leftplayer.body.GetPosition().y * 40-5, box2d.b2BodyType.b2_dynamicBody)
 	                	//console.log(throwingball)
 	                	b2world.applyImpulse(throwingball.body, 1, 1)
 	                	leftplayer.item = ''
@@ -32,7 +32,7 @@ if(typeof KeyboardJS !== 'undefined'){
                 			console.log(playerCollisionWith)
                 			playerCollisionWith.SetType(box2d.b2BodyType.b2_dynamicBody)
                 		}
-                		if(isEmptyObject(playerCollisionWith) !== true && playerCollisionWith.GetUserData().name === 'haus2')
+                		if(isEmptyObject(playerCollisionWith) !== true && playerCollisionWith.GetUserData().name === 'haus2'){
                 			console.log(playerCollisionWith)
     			            var menu = new CG.Menu(Game.width2, 200, 10)
 				            var button1 = new CG.Button(Game.asset.getImageByName('back1'), new CG.Point(Game.width2, 100), '(SCALE)', small, function () {
@@ -45,6 +45,7 @@ if(typeof KeyboardJS !== 'undefined'){
 							// menuHouse.visible = false
 							ingamemenulayer.addElement(menu)
     			            mainscreen.addLayer(ingamemenulayer)
+    			           }
                 	}
 			});
 			KeyboardJS.on('a', function(){

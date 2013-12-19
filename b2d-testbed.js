@@ -43,10 +43,10 @@ CG.B2DWorld.extend('B2DTestbed', {
         fixDef.shape.SetAsBox(0.5 / 2, (Game.width / this.scale) / 2)
         this.world.CreateBody(bodyDef).CreateFixture(fixDef)
 
-        haus2 = new CG.B2DNoCollisionBody(this.world, 'haus2', Game.asset.getImageByName('haus2'), Game.asset.getJsonByName('haus2'), 320 , 114, this.scale, box2d.b2BodyType.b2_staticBody, false)
+        haus2 = new CG.B2DNoCollisionBody(this.world, 'haus2', Game.asset.getImageByName('haus2'), Game.asset.getJsonByName('haus2'), 320 , 424, this.scale, box2d.b2BodyType.b2_staticBody, false)
         this.addCustom(haus2)
         
-        baum2 = new CG.B2DNoCollisionBody(this.world, 'baum2', Game.asset.getImageByName('baum2'), Game.asset.getJsonByName('baum2'), 680, 92, this.scale, box2d.b2BodyType.b2_staticBody, false)
+        baum2 = new CG.B2DNoCollisionBody(this.world, 'baum2', Game.asset.getImageByName('baum2'), Game.asset.getJsonByName('baum2'), 680, 375, this.scale, box2d.b2BodyType.b2_staticBody, false)
         this.addCustom(baum2)
 
         leftplayer = new CG.B2DLeftPlayer(this.world, 'spritetestphysics', Game.asset.getImageByName('spritetestphysics'), Game.asset.getJsonByName('spritetestphysics'), 610, 110, this.scale, box2d.b2BodyType.b2_dynamicBody, false)
