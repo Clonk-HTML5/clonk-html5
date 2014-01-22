@@ -11,7 +11,9 @@ CG.B2DPolygon.extend('B2DPlayer', {
         this.bodyDef.bullet = true
 
         this.fixDef = new b2FixtureDef
-        this.fixDef.restitution = 0.1
+        this.fixDef.restitution = 0.0
+        this.fixDef.friction = 10
+        this.fixDef.density = 10
         this.linearDamping = 0
         this.angularDamping = 0
 

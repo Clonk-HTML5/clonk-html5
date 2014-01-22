@@ -49,16 +49,22 @@ if(typeof KeyboardJS !== 'undefined'){
                 	}
 			});
 			KeyboardJS.on('a', function(){
-				leftplayer.addVelocity(new b2Vec2(-2, 0))
+				leftplayer.addVelocity(new b2Vec2(-1, 0))
 			});
 			KeyboardJS.on('d', function(){
-				leftplayer.addVelocity(new b2Vec2(2, 0))
+				leftplayer.addVelocity(new b2Vec2(1, 0))
 			});
 			KeyboardJS.on('w', function(){
 				leftplayer.addVelocity(new b2Vec2(0, -5))
 			});
+			KeyboardJS.on('w + a', function(){
+				leftplayer.addVelocity(new b2Vec2(-1, -5))
+			});
+			KeyboardJS.on('w + d', function(){
+				leftplayer.addVelocity(new b2Vec2(1, -5))
+			});
 			KeyboardJS.on('s', function(){
-				leftplayer.addVelocity(new b2Vec2(0, 2))
+				leftplayer.addVelocity(new b2Vec2(0, 3))
 			});
 			KeyboardJS.on('right', function(){
                     velo = b2world.elements[1].body.GetLinearVelocity()

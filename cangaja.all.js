@@ -56,6 +56,34 @@ var CG = CG || {
     end: {x: 0, y: 0}
 };
 
+/**
+ Extends a destination object with a source object (modifies destination object)
+
+ @method CG._extend
+ @param {Object} dest - destination object
+ @param {Object} source - source object
+ @return {Object} returns the dest object
+ @for Cangaja
+ */
+CG._extend = function(dest,source) {
+    if(!source) { return dest; }
+    for (var prop in source) {
+        dest[prop] = source[prop];
+    }
+    return dest;
+};
+
+/**
+ Return a shallow copy of an object. Sub-objects (and sub-arrays) are not cloned. (uses extend internally)
+
+ @method CG._clone
+ @param {Object} obj - object to clone
+ @return {Object} cloned object
+ @for Cangaja
+ */
+CG._clone = function(obj) {
+    return Q._extend({},obj);
+};
 
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
@@ -437,940 +465,302 @@ Transform.prototype.transformPoint = function(px, py) {
   px = x * this.m[0] + y * this.m[2] + this.m[4];
   py = x * this.m[1] + y * this.m[3] + this.m[5];
   return [px, py];
-};/**
- * Title: KeyboardJS
- * Version: v0.4.1
- * Description: KeyboardJS is a flexible and easy to use keyboard binding
- * library.
- * Author: Robert Hurst.
- *
- * Copyright 2011, Robert William Hurst
- * Licenced under the BSD License.
- * See https://raw.github.com/RobertWHurst/KeyboardJS/master/license.txt
- */
-(function(context, factory) {
-
-	//INDEXOF POLLYFILL
-	[].indexOf||(Array.prototype.indexOf=function(a,b,c){for(c=this.length,b=(c+~~b)%c;b<c&&(!(b in this)||this[b]!==a);b++);return b^c?b:-1;});
-
-	//AMD
-	if(typeof define === 'function' && define.amd) { define(constructAMD); }
-
-	//GLOBAL
-	else { constructGlobal(); }
-
-	/**
-	 * Construct AMD version of the library
-	 */
-	function constructAMD() {
-
-		//create a library instance
-		return init();
-
-		//spawns a library instance
-		function init() {
-			var library;
-			library = factory('amd');
-			library.fork = init;
-			return library;
-		}
-	}
-
-	/**
-	 * Construct a Global version of the library
-	 */
-	function constructGlobal() {
-		var library;
-
-		//create a library instance
-		library = init();
-		library.noConflict('KeyboardJS', 'k');
-
-		//spawns a library instance
-		function init() {
-			var library, namespaces = [], previousValues = {};
-
-			library = factory('global');
-			library.fork = init;
-			library.noConflict = noConflict;
-			return library;
-
-			//sets library namespaces
-			function noConflict(    ) {
-				var args, nI, newNamespaces;
-
-				newNamespaces = Array.prototype.slice.apply(arguments);
-
-				for(nI = 0; nI < namespaces.length; nI += 1) {
-					if(typeof previousValues[namespaces[nI]] === 'undefined') {
-						delete context[namespaces[nI]];
-					} else {
-						context[namespaces[nI]] = previousValues[namespaces[nI]];
-					}
-				}
-
-				previousValues = {};
-
-				for(nI = 0; nI < newNamespaces.length; nI += 1) {
-					if(typeof newNamespaces[nI] !== 'string') {
-						throw new Error('Cannot replace namespaces. All new namespaces must be strings.');
-					}
-					previousValues[newNamespaces[nI]] = context[newNamespaces[nI]];
-					context[newNamespaces[nI]] = library;
-				}
-
-				namespaces = newNamespaces;
-
-				return namespaces;
-			}
-		}
-	}
-})(this, function(env) {
-	var KeyboardJS = {}, locales = {}, locale, map, macros, activeKeys = [], bindings = [], activeBindings = [],
-	activeMacros = [], aI, usLocale;
-
-
-	///////////////////////
-	// DEFUALT US LOCALE //
-	///////////////////////
-
-	//define US locale
-	//If you create a new locale please submit it as a pull request or post
-	// it in the issue tracker at
-	// http://github.com/RobertWhurst/KeyboardJS/issues/
-	usLocale = {
-		"map": {
-
-			//general
-			"3": ["cancel"],
-			"8": ["backspace"],
-			"9": ["tab"],
-			"12": ["clear"],
-			"13": ["enter"],
-			"16": ["shift"],
-			"17": ["ctrl"],
-			"18": ["alt", "menu"],
-			"19": ["pause", "break"],
-			"20": ["capslock"],
-			"27": ["escape", "esc"],
-			"32": ["space", "spacebar"],
-			"33": ["pageup"],
-			"34": ["pagedown"],
-			"35": ["end"],
-			"36": ["home"],
-			"37": ["left"],
-			"38": ["up"],
-			"39": ["right"],
-			"40": ["down"],
-			"41": ["select"],
-			"42": ["printscreen"],
-			"43": ["execute"],
-			"44": ["snapshot"],
-			"45": ["insert", "ins"],
-			"46": ["delete", "del"],
-			"47": ["help"],
-			"91": ["command", "windows", "win", "super", "leftcommand", "leftwindows", "leftwin", "leftsuper"],
-			"92": ["command", "windows", "win", "super", "rightcommand", "rightwindows", "rightwin", "rightsuper"],
-			"145": ["scrolllock", "scroll"],
-			"186": ["semicolon", ";"],
-			"187": ["equal", "equalsign", "="],
-			"188": ["comma", ","],
-			"189": ["dash", "-"],
-			"190": ["period", "."],
-			"191": ["slash", "forwardslash", "/"],
-			"192": ["graveaccent", "`"],
-			"219": ["openbracket", "["],
-			"220": ["backslash", "\\"],
-			"221": ["closebracket", "]"],
-			"222": ["apostrophe", "'"],
-
-			//0-9
-			"48": ["zero", "0"],
-			"49": ["one", "1"],
-			"50": ["two", "2"],
-			"51": ["three", "3"],
-			"52": ["four", "4"],
-			"53": ["five", "5"],
-			"54": ["six", "6"],
-			"55": ["seven", "7"],
-			"56": ["eight", "8"],
-			"57": ["nine", "9"],
-
-			//numpad
-			"96": ["numzero", "num0"],
-			"97": ["numone", "num1"],
-			"98": ["numtwo", "num2"],
-			"99": ["numthree", "num3"],
-			"100": ["numfour", "num4"],
-			"101": ["numfive", "num5"],
-			"102": ["numsix", "num6"],
-			"103": ["numseven", "num7"],
-			"104": ["numeight", "num8"],
-			"105": ["numnine", "num9"],
-			"106": ["nummultiply", "num*"],
-			"107": ["numadd", "num+"],
-			"108": ["numenter"],
-			"109": ["numsubtract", "num-"],
-			"110": ["numdecimal", "num."],
-			"111": ["numdevide", "num/"],
-			"144": ["numlock", "num"],
-
-			//function keys
-			"112": ["f1"],
-			"113": ["f2"],
-			"114": ["f3"],
-			"115": ["f4"],
-			"116": ["f5"],
-			"117": ["f6"],
-			"118": ["f7"],
-			"119": ["f8"],
-			"120": ["f9"],
-			"121": ["f10"],
-			"122": ["f11"],
-			"123": ["f12"]
-		},
-		"macros": [
-
-			//secondary key symbols
-			['shift + `', ["tilde", "~"]],
-			['shift + 1', ["exclamation", "exclamationpoint", "!"]],
-			['shift + 2', ["at", "@"]],
-			['shift + 3', ["number", "#"]],
-			['shift + 4', ["dollar", "dollars", "dollarsign", "$"]],
-			['shift + 5', ["percent", "%"]],
-			['shift + 6', ["caret", "^"]],
-			['shift + 7', ["ampersand", "and", "&"]],
-			['shift + 8', ["asterisk", "*"]],
-			['shift + 9', ["openparen", "("]],
-			['shift + 0', ["closeparen", ")"]],
-			['shift + -', ["underscore", "_"]],
-			['shift + =', ["plus", "+"]],
-			['shift + (', ["opencurlybrace", "opencurlybracket", "{"]],
-			['shift + )', ["closecurlybrace", "closecurlybracket", "}"]],
-			['shift + \\', ["verticalbar", "|"]],
-			['shift + ;', ["colon", ":"]],
-			['shift + \'', ["quotationmark", "\""]],
-			['shift + !,', ["openanglebracket", "<"]],
-			['shift + .', ["closeanglebracket", ">"]],
-			['shift + /', ["questionmark", "?"]]
-		]
-	};
-	//a-z and A-Z
-	for (aI = 65; aI <= 90; aI += 1) {
-		usLocale.map[aI] = String.fromCharCode(aI + 32);
-		usLocale.macros.push(['shift + ' + String.fromCharCode(aI + 32) + ', capslock + ' + String.fromCharCode(aI + 32), [String.fromCharCode(aI)]]);
-	}
-	registerLocale('us', usLocale);
-	getSetLocale('us');
-
-
-	//////////
-	// INIT //
-	//////////
-
-	//enable the library
-	enable();
-
-
-	/////////
-	// API //
-	/////////
-
-	//assemble the library and return it
-	KeyboardJS.enable = enable;
-	KeyboardJS.disable = disable;
-	KeyboardJS.activeKeys = getActiveKeys;
-	KeyboardJS.on = createBinding;
-	KeyboardJS.clear = removeBindingByKeyCombo;
-	KeyboardJS.clear.key = removeBindingByKeyName;
-	KeyboardJS.locale = getSetLocale;
-	KeyboardJS.locale.register = registerLocale;
-	KeyboardJS.macro = createMacro;
-	KeyboardJS.macro.remove = removeMacro;
-	KeyboardJS.key = {};
-	KeyboardJS.key.name = getKeyName;
-	KeyboardJS.key.code = getKeyCode;
-	KeyboardJS.combo = {};
-	KeyboardJS.combo.active = isSatisfiedCombo;
-	KeyboardJS.combo.parse = parseKeyCombo;
-	KeyboardJS.combo.stringify = stringifyKeyCombo;
-	return KeyboardJS;
-
-
-	//////////////////////
-	// INSTANCE METHODS //
-	//////////////////////
-
-	/**
-	 * Enables KeyboardJS
-	 */
-	function enable() {
-		if(window.addEventListener) {
-			document.addEventListener('keydown', keydown, false);
-			document.addEventListener('keyup', keyup, false);
-			window.addEventListener('blur', reset, false);
-			window.addEventListener('webkitfullscreenchange', reset, false);
-			window.addEventListener('mozfullscreenchange', reset, false);
-		} else if(window.attachEvent) {
-			document.attachEvent('onkeydown', keydown);
-			document.attachEvent('onkeyup', keyup);
-			window.attachEvent('onblur', reset);
-		}
-	}
-
-	/**
-	 * Exits all active bindings and disables KeyboardJS
-	 */
-	function disable() {
-		reset();
-		if(window.removeEventListener) {
-			document.removeEventListener('keydown', keydown, false);
-			document.removeEventListener('keyup', keyup, false);
-			window.removeEventListener('blur', reset, false);
-			window.removeEventListener('webkitfullscreenchange', reset, false);
-			window.removeEventListener('mozfullscreenchange', reset, false);
-		} else if(window.detachEvent) {
-			document.detachEvent('onkeydown', keydown);
-			document.detachEvent('onkeyup', keyup);
-			window.detachEvent('onblur', reset);
-		}
-	}
-
-
-	////////////////////
-	// EVENT HANDLERS //
-	////////////////////
-
-	/**
-	 * Exits all active bindings. Optionally passes an event to all binding
-	 *  handlers.
-	 * @param  {KeyboardEvent}	event	[Optional]
-	 */
-	function reset(event) {
-		activeKeys = [];
-		pruneMacros();
-		pruneBindings(event);
-	}
-
-	/**
-	 * Key down event handler.
-	 * @param  {KeyboardEvent}	event
-	 */
-	function keydown(event) {
-		var keyNames, keyName, kI;
-		keyNames = getKeyName(event.keyCode);
-		if(keyNames.length < 1) { return; }
-		event.isRepeat = false;
-		for(kI = 0; kI < keyNames.length; kI += 1) {
-		    keyName = keyNames[kI];
-		    if (getActiveKeys().indexOf(keyName) != -1)
-		        event.isRepeat = true;
-			addActiveKey(keyName);
-		}
-		executeMacros();
-		executeBindings(event);
-	}
-
-	/**
-	 * Key up event handler.
-	 * @param  {KeyboardEvent} event
-	 */
-	function keyup(event) {
-		var keyNames, kI;
-		keyNames = getKeyName(event.keyCode);
-		if(keyNames.length < 1) { return; }
-		for(kI = 0; kI < keyNames.length; kI += 1) {
-			removeActiveKey(keyNames[kI]);
-		}
-		pruneMacros();
-		pruneBindings(event);
-	}
-
-	/**
-	 * Accepts a key code and returns the key names defined by the current
-	 *  locale.
-	 * @param  {Number}	keyCode
-	 * @return {Array}	keyNames	An array of key names defined for the key
-	 *  code as defined by the current locale.
-	 */
-	function getKeyName(keyCode) {
-		return map[keyCode] || [];
-	}
-
-	/**
-	 * Accepts a key name and returns the key code defined by the current
-	 *  locale.
-	 * @param  {Number}	keyName
-	 * @return {Number|false}
-	 */
-	function getKeyCode(keyName) {
-		var keyCode;
-		for(keyCode in map) {
-			if(!map.hasOwnProperty(keyCode)) { continue; }
-			if(map[keyCode].indexOf(keyName) > -1) { return keyCode; }
-		}
-		return false;
-	}
-
-
-	////////////
-	// MACROS //
-	////////////
-
-	/**
-	 * Accepts a key combo and an array of key names to inject once the key
-	 *  combo is satisfied.
-	 * @param  {String}	combo
-	 * @param  {Array}	injectedKeys
-	 */
-	function createMacro(combo, injectedKeys) {
-		if(typeof combo !== 'string' && (typeof combo !== 'object' || typeof combo.push !== 'function')) {
-			throw new Error("Cannot create macro. The combo must be a string or array.");
-		}
-		if(typeof injectedKeys !== 'object' || typeof injectedKeys.push !== 'function') {
-			throw new Error("Cannot create macro. The injectedKeys must be an array.");
-		}
-		macros.push([combo, injectedKeys]);
-	}
-
-	/**
-	 * Accepts a key combo and clears any and all macros bound to that key
-	 * combo.
-	 * @param  {String} combo
-	 */
-	function removeMacro(combo) {
-		var macro;
-		if(typeof combo !== 'string' && (typeof combo !== 'object' || typeof combo.push !== 'function')) { throw new Error("Cannot remove macro. The combo must be a string or array."); }
-		for(mI = 0; mI < macros.length; mI += 1) {
-			macro = macros[mI];
-			if(compareCombos(combo, macro[0])) {
-				removeActiveKey(macro[1]);
-				macros.splice(mI, 1);
-				break;
-			}
-		}
-	}
-
-	/**
-	 * Executes macros against the active keys. Each macro's key combo is
-	 *  checked and if found to be satisfied, the macro's key names are injected
-	 *  into active keys.
-	 */
-	function executeMacros() {
-		var mI, combo, kI;
-		for(mI = 0; mI < macros.length; mI += 1) {
-			combo = parseKeyCombo(macros[mI][0]);
-			if(activeMacros.indexOf(macros[mI]) === -1 && isSatisfiedCombo(combo)) {
-				activeMacros.push(macros[mI]);
-				for(kI = 0; kI < macros[mI][1].length; kI += 1) {
-					addActiveKey(macros[mI][1][kI]);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Prunes active macros. Checks each active macro's key combo and if found
-	 *  to no longer to be satisfied, each of the macro's key names are removed
-	 *  from active keys.
-	 */
-	function pruneMacros() {
-		var mI, combo, kI;
-		for(mI = 0; mI < activeMacros.length; mI += 1) {
-			combo = parseKeyCombo(activeMacros[mI][0]);
-			if(isSatisfiedCombo(combo) === false) {
-				for(kI = 0; kI < activeMacros[mI][1].length; kI += 1) {
-					removeActiveKey(activeMacros[mI][1][kI]);
-				}
-				activeMacros.splice(mI, 1);
-				mI -= 1;
-			}
-		}
-	}
-
-
-	//////////////
-	// BINDINGS //
-	//////////////
-
-	/**
-	 * Creates a binding object, and, if provided, binds a key down hander and
-	 *  a key up handler. Returns a binding object that emits keyup and
-	 *  keydown events.
-	 * @param  {String}		keyCombo
-	 * @param  {Function}	keyDownCallback	[Optional]
-	 * @param  {Function}	keyUpCallback	[Optional]
-	 * @return {Object}		binding
-	 */
-	function createBinding(keyCombo, keyDownCallback, keyUpCallback) {
-		var api = {}, binding, subBindings = [], bindingApi = {}, kI,
-		subCombo;
-
-		//break the combo down into a combo array
-		if(typeof keyCombo === 'string') {
-			keyCombo = parseKeyCombo(keyCombo);
-		}
-
-		//bind each sub combo contained within the combo string
-		for(kI = 0; kI < keyCombo.length; kI += 1) {
-			binding = {};
-
-			//stringify the combo again
-			subCombo = stringifyKeyCombo([keyCombo[kI]]);
-
-			//validate the sub combo
-			if(typeof subCombo !== 'string') { throw new Error('Failed to bind key combo. The key combo must be string.'); }
-
-			//create the binding
-			binding.keyCombo = subCombo;
-			binding.keyDownCallback = [];
-			binding.keyUpCallback = [];
-
-			//inject the key down and key up callbacks if given
-			if(keyDownCallback) { binding.keyDownCallback.push(keyDownCallback); }
-			if(keyUpCallback) { binding.keyUpCallback.push(keyUpCallback); }
-
-			//stash the new binding
-			bindings.push(binding);
-			subBindings.push(binding);
-		}
-
-		//build the binding api
-		api.clear = clear;
-		api.on = on;
-		return api;
-
-		/**
-		 * Clears the binding
-		 */
-		function clear() {
-			var bI;
-			for(bI = 0; bI < subBindings.length; bI += 1) {
-				bindings.splice(bindings.indexOf(subBindings[bI]), 1);
-			}
-		}
-
-		/**
-		 * Accepts an event name. and any number of callbacks. When the event is
-		 *  emitted, all callbacks are executed. Available events are key up and
-		 *  key down.
-		 * @param  {String}	eventName
-		 * @return {Object}	subBinding
-		 */
-		function on(eventName    ) {
-			var api = {}, callbacks, cI, bI;
-
-			//validate event name
-			if(typeof eventName !== 'string') { throw new Error('Cannot bind callback. The event name must be a string.'); }
-			if(eventName !== 'keyup' && eventName !== 'keydown') { throw new Error('Cannot bind callback. The event name must be a "keyup" or "keydown".'); }
-
-			//gather the callbacks
-			callbacks = Array.prototype.slice.apply(arguments, [1]);
-
-			//stash each the new binding
-			for(cI = 0; cI < callbacks.length; cI += 1) {
-				if(typeof callbacks[cI] === 'function') {
-					if(eventName === 'keyup') {
-						for(bI = 0; bI < subBindings.length; bI += 1) {
-							subBindings[bI].keyUpCallback.push(callbacks[cI]);
-						}
-					} else if(eventName === 'keydown') {
-						for(bI = 0; bI < subBindings.length; bI += 1) {
-							subBindings[bI].keyDownCallback.push(callbacks[cI]);
-						}
-					}
-				}
-			}
-
-			//construct and return the sub binding api
-			api.clear = clear;
-			return api;
-
-			/**
-			 * Clears the binding
-			 */
-			function clear() {
-				var cI, bI;
-				for(cI = 0; cI < callbacks.length; cI += 1) {
-					if(typeof callbacks[cI] === 'function') {
-						if(eventName === 'keyup') {
-							for(bI = 0; bI < subBindings.length; bI += 1) {
-								subBindings[bI].keyUpCallback.splice(subBindings[bI].keyUpCallback.indexOf(callbacks[cI]), 1);
-							}
-						} else {
-							for(bI = 0; bI < subBindings.length; bI += 1) {
-								subBindings[bI].keyDownCallback.splice(subBindings[bI].keyDownCallback.indexOf(callbacks[cI]), 1);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Clears all binding attached to a given key combo. Key name order does not
-	 * matter as long as the key combos equate.
-	 * @param  {String}	keyCombo
-	 */
-	function removeBindingByKeyCombo(keyCombo) {
-		var bI, binding, keyName;
-		for(bI = 0; bI < bindings.length; bI += 1) {
-			binding = bindings[bI];
-			if(compareCombos(keyCombo, binding.keyCombo)) {
-				bindings.splice(bI, 1); bI -= 1;
-			}
-		}
-	}
-
-	/**
-	 * Clears all binding attached to key combos containing a given key name.
-	 * @param  {String}	keyName
-	 */
-	function removeBindingByKeyName(keyName) {
-		var bI, kI, binding;
-		if(keyName) {
-			for(bI = 0; bI < bindings.length; bI += 1) {
-				binding = bindings[bI];
-				for(kI = 0; kI < binding.keyCombo.length; kI += 1) {
-					if(binding.keyCombo[kI].indexOf(keyName) > -1) {
-						bindings.splice(bI, 1); bI -= 1;
-						break;
-					}
-				}
-			}
-		} else {
-			bindings = [];
-		}
-	}
-
-	/**
-	 * Executes bindings that are active. Only allows the keys to be used once
-	 *  as to prevent binding overlap.
-	 * @param  {KeyboardEvent}	event	The keyboard event.
-	 */
-	function executeBindings(event) {
-		var bI, sBI, binding, bindingKeys, remainingKeys, cI, killEventBubble, kI, bindingKeysSatisfied,
-		index, sortedBindings = [], bindingWeight;
-
-		remainingKeys = [].concat(activeKeys);
-		for(bI = 0; bI < bindings.length; bI += 1) {
-			bindingWeight = extractComboKeys(bindings[bI].keyCombo).length;
-			if(!sortedBindings[bindingWeight]) { sortedBindings[bindingWeight] = []; }
-			sortedBindings[bindingWeight].push(bindings[bI]);
-		}
-		for(sBI = sortedBindings.length - 1; sBI >= 0; sBI -= 1) {
-			if(!sortedBindings[sBI]) { continue; }
-			for(bI = 0; bI < sortedBindings[sBI].length; bI += 1) {
-				binding = sortedBindings[sBI][bI];
-				bindingKeys = extractComboKeys(binding.keyCombo);
-				bindingKeysSatisfied = true;
-				for(kI = 0; kI < bindingKeys.length; kI += 1) {
-					if(remainingKeys.indexOf(bindingKeys[kI]) === -1) {
-						bindingKeysSatisfied = false;
-						break;
-					}
-				}
-				if(bindingKeysSatisfied && isSatisfiedCombo(binding.keyCombo)) {
-					activeBindings.push(binding);
-					for(kI = 0; kI < bindingKeys.length; kI += 1) {
-						index = remainingKeys.indexOf(bindingKeys[kI]);
-						if(index > -1) {
-							remainingKeys.splice(index, 1);
-							kI -= 1;
-						}
-					}
-					for(cI = 0; cI < binding.keyDownCallback.length; cI += 1) {
-						if (binding.keyDownCallback[cI](event, getActiveKeys(), binding.keyCombo) === false) {
-							killEventBubble = true;
-						}
-					}
-					if(killEventBubble === true) {
-						event.preventDefault();
-						event.stopPropagation();
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Removes bindings that are no longer satisfied by the active keys. Also
-	 *  fires the key up callbacks.
-	 * @param  {KeyboardEvent}	event
-	 */
-	function pruneBindings(event) {
-		var bI, cI, binding, killEventBubble;
-		for(bI = 0; bI < activeBindings.length; bI += 1) {
-			binding = activeBindings[bI];
-			if(isSatisfiedCombo(binding.keyCombo) === false) {
-				for(cI = 0; cI < binding.keyUpCallback.length; cI += 1) {
-					if (binding.keyUpCallback[cI](event, getActiveKeys(), binding.keyCombo) === false) {
-						killEventBubble = true;
-					}
-				}
-				if(killEventBubble === true) {
-					event.preventDefault();
-					event.stopPropagation();
-				}
-				activeBindings.splice(bI, 1);
-				bI -= 1;
-			}
-		}
-	}
-
-
-	///////////////////
-	// COMBO STRINGS //
-	///////////////////
-
-	/**
-	 * Compares two key combos returning true when they are functionally
-	 *  equivalent.
-	 * @param  {String}	keyComboArrayA keyCombo A key combo string or array.
-	 * @param  {String}	keyComboArrayB keyCombo A key combo string or array.
-	 * @return {Boolean}
-	 */
-	function compareCombos(keyComboArrayA, keyComboArrayB) {
-		var cI, sI, kI;
-		keyComboArrayA = parseKeyCombo(keyComboArrayA);
-		keyComboArrayB = parseKeyCombo(keyComboArrayB);
-		if(keyComboArrayA.length !== keyComboArrayB.length) { return false; }
-		for(cI = 0; cI < keyComboArrayA.length; cI += 1) {
-			if(keyComboArrayA[cI].length !== keyComboArrayB[cI].length) { return false; }
-			for(sI = 0; sI < keyComboArrayA[cI].length; sI += 1) {
-				if(keyComboArrayA[cI][sI].length !== keyComboArrayB[cI][sI].length) { return false; }
-				for(kI = 0; kI < keyComboArrayA[cI][sI].length; kI += 1) {
-					if(keyComboArrayB[cI][sI].indexOf(keyComboArrayA[cI][sI][kI]) === -1) { return false; }
-				}
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * Checks to see if a key combo string or key array is satisfied by the
-	 *  currently active keys. It does not take into account spent keys.
-	 * @param  {String}	keyCombo	A key combo string or array.
-	 * @return {Boolean}
-	 */
-	function isSatisfiedCombo(keyCombo) {
-		var cI, sI, stage, kI, stageOffset = 0, index, comboMatches;
-		keyCombo = parseKeyCombo(keyCombo);
-		for(cI = 0; cI < keyCombo.length; cI += 1) {
-			comboMatches = true;
-			stageOffset = 0;
-			for(sI = 0; sI < keyCombo[cI].length; sI += 1) {
-				stage = [].concat(keyCombo[cI][sI]);
-				for(kI = stageOffset; kI < activeKeys.length; kI += 1) {
-					index = stage.indexOf(activeKeys[kI]);
-					if(index > -1) {
-						stage.splice(index, 1);
-						stageOffset = kI;
-					}
-				}
-				if(stage.length !== 0) { comboMatches = false; break; }
-			}
-			if(comboMatches) { return true; }
-		}
-		return false;
-	}
-
-	/**
-	 * Accepts a key combo array or string and returns a flat array containing all keys referenced by
-	 * the key combo.
-	 * @param  {String}	keyCombo	A key combo string or array.
-	 * @return {Array}
-	 */
-	function extractComboKeys(keyCombo) {
-		var cI, sI, kI, keys = [];
-		keyCombo = parseKeyCombo(keyCombo);
-		for(cI = 0; cI < keyCombo.length; cI += 1) {
-			for(sI = 0; sI < keyCombo[cI].length; sI += 1) {
-				keys = keys.concat(keyCombo[cI][sI]);
-			}
-		}
-		return keys;
-	}
-
-	/**
-	 * Parses a key combo string into a 3 dimensional array.
-	 * - Level 1 - sub combos.
-	 * - Level 2 - combo stages. A stage is a set of key name pairs that must
-	 *  be satisfied in the order they are defined.
-	 * - Level 3 - each key name to the stage.
-	 * @param  {String|Array}	keyCombo	A key combo string.
-	 * @return {Array}
-	 */
-	function parseKeyCombo(keyCombo) {
-		var s = keyCombo, i = 0, op = 0, ws = false, nc = false, combos = [], combo = [], stage = [], key = '';
-
-		if(typeof keyCombo === 'object' && typeof keyCombo.push === 'function') { return keyCombo; }
-		if(typeof keyCombo !== 'string') { throw new Error('Cannot parse "keyCombo" because its type is "' + (typeof keyCombo) + '". It must be a "string".'); }
-
-		//remove leading whitespace
-		while(s.charAt(i) === ' ') { i += 1; }
-		while(true) {
-			if(s.charAt(i) === ' ') {
-				//white space & next combo op
-				while(s.charAt(i) === ' ') { i += 1; }
-				ws = true;
-			} else if(s.charAt(i) === ',') {
-				if(op || nc) { throw new Error('Failed to parse key combo. Unexpected , at character index ' + i + '.'); }
-				nc = true;
-				i += 1;
-			} else if(s.charAt(i) === '+') {
-				//next key
-				if(key.length) { stage.push(key); key = ''; }
-				if(op || nc) { throw new Error('Failed to parse key combo. Unexpected + at character index ' + i + '.'); }
-				op = true;
-				i += 1;
-			} else if(s.charAt(i) === '>') {
-				//next stage op
-				if(key.length) { stage.push(key); key = ''; }
-				if(stage.length) { combo.push(stage); stage = []; }
-				if(op || nc) { throw new Error('Failed to parse key combo. Unexpected > at character index ' + i + '.'); }
-				op = true;
-				i += 1;
-			} else if(i < s.length - 1 && s.charAt(i) === '!' && (s.charAt(i + 1) === '>' || s.charAt(i + 1) === ',' || s.charAt(i + 1) === '+')) {
-				key += s.charAt(i + 1);
-				op = false;
-				ws = false;
-				nc = false;
-				i += 2;
-			} else if(i < s.length && s.charAt(i) !== '+' && s.charAt(i) !== '>' && s.charAt(i) !== ',' && s.charAt(i) !== ' ') {
-				//end combo
-				if(op === false && ws === true || nc === true) {
-					if(key.length) { stage.push(key); key = ''; }
-					if(stage.length) { combo.push(stage); stage = []; }
-					if(combo.length) { combos.push(combo); combo = []; }
-				}
-				op = false;
-				ws = false;
-				nc = false;
-				//key
-				while(i < s.length && s.charAt(i) !== '+' && s.charAt(i) !== '>' && s.charAt(i) !== ',' && s.charAt(i) !== ' ') {
-					key += s.charAt(i);
-					i += 1;
-				}
-			} else {
-				//unknown char
-				i += 1;
-				continue;
-			}
-			//end of combos string
-			if(i >= s.length) {
-				if(key.length) { stage.push(key); key = ''; }
-				if(stage.length) { combo.push(stage); stage = []; }
-				if(combo.length) { combos.push(combo); combo = []; }
-				break;
-			}
-		}
-		return combos;
-	}
-
-	/**
-	 * Stringifys a key combo.
-	 * @param  {Array|String}	keyComboArray	A key combo array. If a key
-	 *  combo string is given it will be returned.
-	 * @return {String}
-	 */
-	function stringifyKeyCombo(keyComboArray) {
-		var cI, ccI, output = [];
-		if(typeof keyComboArray === 'string') { return keyComboArray; }
-		if(typeof keyComboArray !== 'object' || typeof keyComboArray.push !== 'function') { throw new Error('Cannot stringify key combo.'); }
-		for(cI = 0; cI < keyComboArray.length; cI += 1) {
-			output[cI] = [];
-			for(ccI = 0; ccI < keyComboArray[cI].length; ccI += 1) {
-				output[cI][ccI] = keyComboArray[cI][ccI].join(' + ');
-			}
-			output[cI] = output[cI].join(' > ');
-		}
-		return output.join(' ');
-	}
-
-
-	/////////////////
-	// ACTIVE KEYS //
-	/////////////////
-
-	/**
-	 * Returns the a copy of the active keys array.
-	 * @return {Array}
-	 */
-	function getActiveKeys() {
-		return [].concat(activeKeys);
-	}
-
-	/**
-	 * Adds a key to the active keys array, but only if it has not already been
-	 *  added.
-	 * @param {String}	keyName	The key name string.
-	 */
-	function addActiveKey(keyName) {
-		if(keyName.match(/\s/)) { throw new Error('Cannot add key name ' + keyName + ' to active keys because it contains whitespace.'); }
-		if(activeKeys.indexOf(keyName) > -1) { return; }
-		activeKeys.push(keyName);
-	}
-
-	/**
-	 * Removes a key from the active keys array.
-	 * @param  {String}	keyNames	The key name string.
-	 */
-	function removeActiveKey(keyName) {
-		var keyCode = getKeyCode(keyName);
-		if(keyCode === '91' || keyCode === '92') { activeKeys = []; } //remove all key on release of super.
-		else { activeKeys.splice(activeKeys.indexOf(keyName), 1); }
-	}
-
-
-	/////////////
-	// LOCALES //
-	/////////////
-
-	/**
-	 * Registers a new locale. This is useful if you would like to add support for a new keyboard layout. It could also be useful for
-	 * alternative key names. For example if you program games you could create a locale for your key mappings. Instead of key 65 mapped
-	 * to 'a' you could map it to 'jump'.
-	 * @param  {String}	localeName	The name of the new locale.
-	 * @param  {Object}	localeMap	The locale map.
-	 */
-	function registerLocale(localeName, localeMap) {
-
-		//validate arguments
-		if(typeof localeName !== 'string') { throw new Error('Cannot register new locale. The locale name must be a string.'); }
-		if(typeof localeMap !== 'object') { throw new Error('Cannot register ' + localeName + ' locale. The locale map must be an object.'); }
-		if(typeof localeMap.map !== 'object') { throw new Error('Cannot register ' + localeName + ' locale. The locale map is invalid.'); }
-
-		//stash the locale
-		if(!localeMap.macros) { localeMap.macros = []; }
-		locales[localeName] = localeMap;
-	}
-
-	/**
-	 * Swaps the current locale.
-	 * @param  {String}	localeName	The locale to activate.
-	 * @return {Object}
-	 */
-	function getSetLocale(localeName) {
-
-		//if a new locale is given then set it
-		if(localeName) {
-			if(typeof localeName !== 'string') { throw new Error('Cannot set locale. The locale name must be a string.'); }
-			if(!locales[localeName]) { throw new Error('Cannot set locale to ' + localeName + ' because it does not exist. If you would like to submit a ' + localeName + ' locale map for KeyboardJS please submit it at https://github.com/RobertWHurst/KeyboardJS/issues.'); }
-
-			//set the current map and macros
-			map = locales[localeName].map;
-			macros = locales[localeName].macros;
-
-			//set the current locale
-			locale = localeName;
-		}
-
-		//return the current locale
-		return locale;
-	}
-});
+};//     keymaster.js
+//     (c) 2011-2012 Thomas Fuchs
+//     keymaster.js may be freely distributed under the MIT license.
+
+;(function(global){
+  var k,
+    _handlers = {},
+    _mods = { 16: false, 18: false, 17: false, 91: false },
+    _scope = 'all',
+    // modifier keys
+    _MODIFIERS = {
+      '⇧': 16, shift: 16,
+      '⌥': 18, alt: 18, option: 18,
+      '⌃': 17, ctrl: 17, control: 17,
+      '⌘': 91, command: 91
+    },
+    // special keys
+    _MAP = {
+      backspace: 8, tab: 9, clear: 12,
+      enter: 13, 'return': 13,
+      esc: 27, escape: 27, space: 32,
+      left: 37, up: 38,
+      right: 39, down: 40,
+      del: 46, 'delete': 46,
+      home: 36, end: 35,
+      pageup: 33, pagedown: 34,
+      ',': 188, '.': 190, '/': 191,
+      '`': 192, '-': 189, '=': 187,
+      ';': 186, '\'': 222,
+      '[': 219, ']': 221, '\\': 220
+    },
+    code = function(x){
+      return _MAP[x] || x.toUpperCase().charCodeAt(0);
+    },
+    _downKeys = [];
+
+  for(k=1;k<20;k++) _MAP['f'+k] = 111+k;
+
+  // IE doesn't support Array#indexOf, so have a simple replacement
+  function index(array, item){
+    var i = array.length;
+    while(i--) if(array[i]===item) return i;
+    return -1;
+  }
+
+  // for comparing mods before unassignment
+  function compareArray(a1, a2) {
+    if (a1.length != a2.length) return false;
+    for (var i = 0; i < a1.length; i++) {
+        if (a1[i] !== a2[i]) return false;
+    }
+    return true;
+  }
+
+  var modifierMap = {
+      16:'shiftKey',
+      18:'altKey',
+      17:'ctrlKey',
+      91:'metaKey'
+  };
+  function updateModifierKey(event) {
+      for(k in _mods) _mods[k] = event[modifierMap[k]];
+  };
+
+  // handle keydown event
+  function dispatch(event) {
+    var key, handler, k, i, modifiersMatch, scope;
+    key = event.keyCode;
+
+    if (index(_downKeys, key) == -1) {
+        _downKeys.push(key);
+    }
+
+    // if a modifier key, set the key.<modifierkeyname> property to true and return
+    if(key == 93 || key == 224) key = 91; // right command on webkit, command on Gecko
+    if(key in _mods) {
+      _mods[key] = true;
+      // 'assignKey' from inside this closure is exported to window.key
+      for(k in _MODIFIERS) if(_MODIFIERS[k] == key) assignKey[k] = true;
+      return;
+    }
+    updateModifierKey(event);
+
+    // see if we need to ignore the keypress (filter() can can be overridden)
+    // by default ignore key presses if a select, textarea, or input is focused
+    if(!assignKey.filter.call(this, event)) return;
+
+    // abort if no potentially matching shortcuts found
+    if (!(key in _handlers)) return;
+
+    scope = getScope();
+
+    // for each potential shortcut
+    for (i = 0; i < _handlers[key].length; i++) {
+      handler = _handlers[key][i];
+
+      // see if it's in the current scope
+      if(handler.scope == scope || handler.scope == 'all'){
+        // check if modifiers match if any
+        modifiersMatch = handler.mods.length > 0;
+        for(k in _mods)
+          if((!_mods[k] && index(handler.mods, +k) > -1) ||
+            (_mods[k] && index(handler.mods, +k) == -1)) modifiersMatch = false;
+        // call the handler and stop the event if neccessary
+        if((handler.mods.length == 0 && !_mods[16] && !_mods[18] && !_mods[17] && !_mods[91]) || modifiersMatch){
+          if(handler.method(event, handler)===false){
+            if(event.preventDefault) event.preventDefault();
+              else event.returnValue = false;
+            if(event.stopPropagation) event.stopPropagation();
+            if(event.cancelBubble) event.cancelBubble = true;
+          }
+        }
+      }
+    }
+  };
+
+  // unset modifier keys on keyup
+  function clearModifier(event){
+    var key = event.keyCode, k,
+        i = index(_downKeys, key);
+
+    // remove key from _downKeys
+    if (i >= 0) {
+        _downKeys.splice(i, 1);
+    }
+
+    if(key == 93 || key == 224) key = 91;
+    if(key in _mods) {
+      _mods[key] = false;
+      for(k in _MODIFIERS) if(_MODIFIERS[k] == key) assignKey[k] = false;
+    }
+  };
+
+  function resetModifiers() {
+    for(k in _mods) _mods[k] = false;
+    for(k in _MODIFIERS) assignKey[k] = false;
+  };
+
+  // parse and assign shortcut
+  function assignKey(key, scope, method){
+    var keys, mods;
+    keys = getKeys(key);
+    if (method === undefined) {
+      method = scope;
+      scope = 'all';
+    }
+
+    // for each shortcut
+    for (var i = 0; i < keys.length; i++) {
+      // set modifier keys if any
+      mods = [];
+      key = keys[i].split('+');
+      if (key.length > 1){
+        mods = getMods(key);
+        key = [key[key.length-1]];
+      }
+      // convert to keycode and...
+      key = key[0]
+      key = code(key);
+      // ...store handler
+      if (!(key in _handlers)) _handlers[key] = [];
+      _handlers[key].push({ shortcut: keys[i], scope: scope, method: method, key: keys[i], mods: mods });
+    }
+  };
+
+  // unbind all handlers for given key in current scope
+  function unbindKey(key, scope) {
+    var multipleKeys, keys,
+      mods = [],
+      i, j, obj;
+
+    multipleKeys = getKeys(key);
+
+    for (j = 0; j < multipleKeys.length; j++) {
+      keys = multipleKeys[j].split('+');
+
+      if (keys.length > 1) {
+        mods = getMods(keys);
+        key = keys[keys.length - 1];
+      }
+
+      key = code(key);
+
+      if (scope === undefined) {
+        scope = getScope();
+      }
+      if (!_handlers[key]) {
+        return;
+      }
+      for (i in _handlers[key]) {
+        obj = _handlers[key][i];
+        // only clear handlers if correct scope and mods match
+        if (obj.scope === scope && compareArray(obj.mods, mods)) {
+          _handlers[key][i] = {};
+        }
+      }
+    }
+  };
+
+  // Returns true if the key with code 'keyCode' is currently down
+  // Converts strings into key codes.
+  function isPressed(keyCode) {
+      if (typeof(keyCode)=='string') {
+        keyCode = code(keyCode);
+      }
+      return index(_downKeys, keyCode) != -1;
+  }
+
+  function getPressedKeyCodes() {
+      return _downKeys.slice(0);
+  }
+
+  function filter(event){
+    var tagName = (event.target || event.srcElement).tagName;
+    // ignore keypressed in any elements that support keyboard data input
+    return !(tagName == 'INPUT' || tagName == 'SELECT' || tagName == 'TEXTAREA');
+  }
+
+  // initialize key.<modifier> to false
+  for(k in _MODIFIERS) assignKey[k] = false;
+
+  // set current scope (default 'all')
+  function setScope(scope){ _scope = scope || 'all' };
+  function getScope(){ return _scope || 'all' };
+
+  // delete all handlers for a given scope
+  function deleteScope(scope){
+    var key, handlers, i;
+
+    for (key in _handlers) {
+      handlers = _handlers[key];
+      for (i = 0; i < handlers.length; ) {
+        if (handlers[i].scope === scope) handlers.splice(i, 1);
+        else i++;
+      }
+    }
+  };
+
+  // abstract key logic for assign and unassign
+  function getKeys(key) {
+    var keys;
+    key = key.replace(/\s/g, '');
+    keys = key.split(',');
+    if ((keys[keys.length - 1]) == '') {
+      keys[keys.length - 2] += ',';
+    }
+    return keys;
+  }
+
+  // abstract mods logic for assign and unassign
+  function getMods(key) {
+    var mods = key.slice(0, key.length - 1);
+    for (var mi = 0; mi < mods.length; mi++)
+    mods[mi] = _MODIFIERS[mods[mi]];
+    return mods;
+  }
+
+  // cross-browser events
+  function addEvent(object, event, method) {
+    if (object.addEventListener)
+      object.addEventListener(event, method, false);
+    else if(object.attachEvent)
+      object.attachEvent('on'+event, function(){ method(window.event) });
+  };
+
+  // set the handlers globally on document
+  addEvent(document, 'keydown', function(event) { dispatch(event) }); // Passing _scope to a callback to ensure it remains the same by execution. Fixes #48
+  addEvent(document, 'keyup', clearModifier);
+
+  // reset modifiers to false whenever the window is (re)focused.
+  addEvent(window, 'focus', resetModifiers);
+
+  // store previously defined key
+  var previousKey = global.key;
+
+  // restore previously defined key and return reference to our key object
+  function noConflict() {
+    var k = global.key;
+    global.key = previousKey;
+    return k;
+  }
+
+  // set window.key and window.key.set/get/deleteScope, and the default filter
+  global.key = assignKey;
+  global.key.setScope = setScope;
+  global.key.getScope = getScope;
+  global.key.deleteScope = deleteScope;
+  global.key.filter = filter;
+  global.key.isPressed = isPressed;
+  global.key.getPressedKeyCodes = getPressedKeyCodes;
+  global.key.noConflict = noConflict;
+  global.key.unbind = unbindKey;
+
+  if(typeof module !== 'undefined') module.exports = key;
+
+})(this);
 !function(e){"object"==typeof exports?module.exports=e():"function"==typeof define&&define.amd?define(e):"undefined"!=typeof window?window.poly2tri=e():"undefined"!=typeof global?global.poly2tri=e():"undefined"!=typeof self&&(self.poly2tri=e())}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /*
  * Poly2Tri Copyright (c) 2009-2013, Poly2Tri Contributors
@@ -1776,41 +1166,49 @@ var Orientation = {
  * </pre>
  */
 function orient2d(pa, pb, pc) {
-    var detleft = (pa.x - pc.x) * (pb.y - pc.y);
-    var detright = (pa.y - pc.y) * (pb.x - pc.x);
-    var val = detleft - detright;
-    if (val > -(EPSILON) && val < (EPSILON)) {
-        return Orientation.COLLINEAR;
-    } else if (val > 0) {
-        return Orientation.CCW;
-    } else {
-        return Orientation.CW;
+    try {
+        var detleft = (pa.x - pc.x) * (pb.y - pc.y);
+        var detright = (pa.y - pc.y) * (pb.x - pc.x);
+        var val = detleft - detright;
+        if (val > -(EPSILON) && val < (EPSILON)) {
+            return Orientation.COLLINEAR;
+        } else if (val > 0) {
+            return Orientation.CCW;
+        } else {
+            return Orientation.CW;
+        }
+    } catch (e) {
+        console.log('orient2d', e, pa, pb, pc)
     }
 }
 
 function inScanArea(pa, pb, pc, pd) {
-    var pdx = pd.x;
-    var pdy = pd.y;
-    var adx = pa.x - pdx;
-    var ady = pa.y - pdy;
-    var bdx = pb.x - pdx;
-    var bdy = pb.y - pdy;
+    try {
+        var pdx = pd.x;
+        var pdy = pd.y;
+        var adx = pa.x - pdx;
+        var ady = pa.y - pdy;
+        var bdx = pb.x - pdx;
+        var bdy = pb.y - pdy;
 
-    var adxbdy = adx * bdy;
-    var bdxady = bdx * ady;
-    var oabd = adxbdy - bdxady;
+        var adxbdy = adx * bdy;
+        var bdxady = bdx * ady;
+        var oabd = adxbdy - bdxady;
 
-    if (oabd <= (EPSILON)) {
-        return false;
+        if (oabd <= (EPSILON)) {
+            return false;
+        }
+
+        var cdx = pc.x - pdx;
+        var cdy = pc.y - pdy;
+
+        var cdxady = cdx * ady;
+        var adxcdy = adx * cdy;
+        var ocad = cdxady - adxcdy;
+
+    } catch (e) {
+        console.log('inScanArea', e, pa, pb, pc, pd)
     }
-
-    var cdx = pc.x - pdx;
-    var cdy = pc.y - pdy;
-
-    var cdxady = cdx * ady;
-    var adxcdy = adx * cdy;
-    var ocad = cdxady - adxcdy;
-
     if (ocad <= (EPSILON)) {
         return false;
     }
@@ -2632,11 +2030,11 @@ Sweep.flipEdgeEvent = function(tcx, ep, eq, t, p) {
     var op = ot.oppositePoint(t, p);
 
     // Additional check from Java version (see issue #88)
-    if (t.getConstrainedEdgeAcross(p)) {
-        var index = t.index(p);
-        throw new PointError("poly2tri Intersecting Constraints",
-                [p, op, t.getPoint((index + 1) % 3), t.getPoint((index + 2) % 3)]);
-    }
+//    if (t.getConstrainedEdgeAcross(p)) {
+//        var index = t.index(p);
+//        throw new PointError("poly2tri Intersecting Constraints",
+//                [p, op, t.getPoint((index + 1) % 3), t.getPoint((index + 2) % 3)]);
+//    }
 
     if (inScanArea(p, t.pointCCW(p), t.pointCW(p), op)) {
         // Lets rotate shared edge one vertex CW
@@ -10747,9 +10145,17 @@ CG.Class.extend('Entity', {
          */
         this.xscale = 1
         /**
+         @property xhandle {Number}
+         */
+        this.xhandle = 0
+        /**
          @property yscale {Number}
          */
         this.yscale = 1
+        /**
+         @property yhandle {Number}
+         */
+        this.yhandle = 0
         /**
          @property hover {boolean}
          */
@@ -10799,21 +10205,31 @@ CG.Class.extend('Entity', {
                 if (this.imagerotation !== 0) {
                     this.cutwidth = image.height
                     this.cutheight = image.width
+                    this.xhandle = this.height / 2
+                    this.yhandle = this.width / 2
                 } else {
                     this.cutwidth = image.width
                     this.cutheight = image.height
+                    this.xhandle = this.width / 2
+                    this.yhandle = this.height / 2
                 }
             } else if (typeof image == 'string' && image != '') {
                 //path to image
                 this.image = new Image()
                 this.image.src = image
-                this.width = this.image.width
-                this.height = this.image.height
+                this.image.onload = function () {
+                    this.width = this.image.width
+                    this.height = this.image.height
+                    this.xhandle = this.width / 2
+                    this.yhandle = this.height / 2
+                }
             } else {
                 //image from MediaAsset
                 this.image = image
                 this.width = this.image.width
                 this.height = this.image.height
+                this.xhandle = this.width / 2
+                this.yhandle = this.height / 2
             }
         }
     },
@@ -11177,7 +10593,6 @@ CG.Entity.extend('Sprite', {
         /**
          @property atlasimage {boolean}
          */
-        this.atlasimage = false
         this.setImage(image)
 
         /**
@@ -11194,17 +10609,9 @@ CG.Entity.extend('Sprite', {
          */
         this.xspeed = 0 //xspeed of the sprite
         /**
-         @property xhandle {Number}
-         */
-        this.xhandle = 0
-        /**
          @property yspeed {Number}
          */
         this.yspeed = 0
-        /**
-         @property yhandle {Number}
-         */
-        this.yhandle = 0
         /**
          @property boundsMode {false/string}
          */
@@ -12121,7 +11528,9 @@ CG.Entity.extend('Bitmap', {
      * @method drawImageToBuffer
      */
     drawImageToBuffer:function () {
-        this.bitmap_ctx.drawImage(this.image, 0, 0)
+        if (this.image) {
+            this.bitmap_ctx.drawImage(this.image, 0, 0)
+        }
         return this
     },
 
@@ -27161,12 +26570,12 @@ goog.provide('box2d.Render');
 
 //goog.require('goog.string.format');
 
-/** 
- * This class implements debug drawing callbacks that are 
- * invoked inside b2World::Step. 
- * @export 
+/**
+ * This class implements debug drawing callbacks that are
+ * invoked inside b2World::Step.
+ * @export
  * @constructor
- * @extends {box2d.b2Draw} 
+ * @extends {box2d.b2Draw}
  * @param {object} opts
  */
 box2d.b2DebugDraw = function (opts)
@@ -27176,25 +26585,25 @@ box2d.b2DebugDraw = function (opts)
     this.scale = opts.scale
 	this.m_canvas = opts.canvas || false
 	this.m_ctx = opts.ctx || false
-    this.m_settings = opts.flags || box2d.b2DrawFlags.e_shapeBit
+    this.m_settings = opts.flags || (box2d.b2DrawFlags.e_shapeBit | box2d.b2DrawFlags.e_centerOfMassBit)
     this.alpha = opts.alpha || 0.5
 }
 
 goog.inherits(box2d.b2DebugDraw, box2d.b2Draw);
 
 /**
- * @export 
- * @type {HTMLCanvasElement} 
+ * @export
+ * @type {HTMLCanvasElement}
  */
 box2d.b2DebugDraw.prototype.m_canvas = null;
 /**
- * @export 
- * @type {CanvasRenderingContext2D} 
+ * @export
+ * @type {CanvasRenderingContext2D}
  */
 box2d.b2DebugDraw.prototype.m_ctx = null;
 /**
- * @export 
- * @type {box2d.Settings} 
+ * @export
+ * @type {box2d.Settings}
  */
 box2d.b2DebugDraw.prototype.m_settings = null;
 
@@ -27203,9 +26612,9 @@ box2d.b2DebugDraw.prototype.alpha = 0.5;
 
 
 /**
- * @export 
- * @return {void} 
- * @param {box2d.b2Transform} xf 
+ * @export
+ * @return {void}
+ * @param {box2d.b2Transform} xf
  */
 box2d.b2DebugDraw.prototype.PushTransform = function (xf)
 {
@@ -27217,9 +26626,9 @@ box2d.b2DebugDraw.prototype.PushTransform = function (xf)
 }
 
 /**
- * @export 
- * @return {void} 
- * @param {box2d.b2Transform} xf 
+ * @export
+ * @return {void}
+ * @param {box2d.b2Transform} xf
  */
 box2d.b2DebugDraw.prototype.PopTransform = function (xf)
 {
@@ -27228,11 +26637,11 @@ box2d.b2DebugDraw.prototype.PopTransform = function (xf)
 }
 
 /**
- * @export 
- * @return {void} 
- * @param {Array.<box2d.b2Vec2>} vertices 
- * @param {number} vertexCount 
- * @param {box2d.b2Color} color 
+ * @export
+ * @return {void}
+ * @param {Array.<box2d.b2Vec2>} vertices
+ * @param {number} vertexCount
+ * @param {box2d.b2Color} color
  */
 box2d.b2DebugDraw.prototype.DrawPolygon = function (vertices, vertexCount, color)
 {
@@ -27240,8 +26649,9 @@ box2d.b2DebugDraw.prototype.DrawPolygon = function (vertices, vertexCount, color
 
 	var ctx = this.m_ctx;
 
+    ctx.globalAlpha = 1
 	ctx.beginPath();
-	ctx.moveTo(vertices[0].x, vertices[0].y);
+	ctx.moveTo(vertices[0].x * this.scale, vertices[0].y * this.scale);
 	for (var i = 1; i < vertexCount; i++)
 	{
 		ctx.lineTo(vertices[i].x * this.scale, vertices[i].y * this.scale);
@@ -27252,11 +26662,11 @@ box2d.b2DebugDraw.prototype.DrawPolygon = function (vertices, vertexCount, color
 };
 
 /**
- * @export 
- * @return {void} 
- * @param {Array.<box2d.b2Vec2>} vertices 
- * @param {number} vertexCount 
- * @param {box2d.b2Color} color 
+ * @export
+ * @return {void}
+ * @param {Array.<box2d.b2Vec2>} vertices
+ * @param {number} vertexCount
+ * @param {box2d.b2Color} color
  */
 box2d.b2DebugDraw.prototype.DrawSolidPolygon = function (vertices, vertexCount, color)
 {
@@ -27278,11 +26688,11 @@ box2d.b2DebugDraw.prototype.DrawSolidPolygon = function (vertices, vertexCount, 
 };
 
 /**
- * @export 
- * @return {void} 
- * @param {box2d.b2Vec2} center 
- * @param {number} radius 
- * @param {box2d.b2Color} color 
+ * @export
+ * @return {void}
+ * @param {box2d.b2Vec2} center
+ * @param {number} radius
+ * @param {box2d.b2Color} color
  */
 box2d.b2DebugDraw.prototype.DrawCircle = function (center, radius, color)
 {
@@ -27297,12 +26707,12 @@ box2d.b2DebugDraw.prototype.DrawCircle = function (center, radius, color)
 };
 
 /**
- * @export 
- * @return {void} 
- * @param {box2d.b2Vec2} center 
- * @param {number} radius 
- * @param {box2d.b2Vec2} axis 
- * @param {box2d.b2Color} color 
+ * @export
+ * @return {void}
+ * @param {box2d.b2Vec2} center
+ * @param {number} radius
+ * @param {box2d.b2Vec2} axis
+ * @param {box2d.b2Color} color
  */
 box2d.b2DebugDraw.prototype.DrawSolidCircle = function (center, radius, axis, color)
 {
@@ -27323,11 +26733,11 @@ box2d.b2DebugDraw.prototype.DrawSolidCircle = function (center, radius, axis, co
 };
 
 /**
- * @export 
- * @return {void} 
- * @param {box2d.b2Vec2} p1 
- * @param {box2d.b2Vec2} p2 
- * @param {box2d.b2Color} color 
+ * @export
+ * @return {void}
+ * @param {box2d.b2Vec2} p1
+ * @param {box2d.b2Vec2} p2
+ * @param {box2d.b2Color} color
  */
 box2d.b2DebugDraw.prototype.DrawSegment = function (p1, p2, color)
 {
@@ -27341,9 +26751,9 @@ box2d.b2DebugDraw.prototype.DrawSegment = function (p1, p2, color)
 };
 
 /**
- * @export 
- * @return {void} 
- * @param {box2d.b2Transform} xf 
+ * @export
+ * @return {void}
+ * @param {box2d.b2Transform} xf
  */
 box2d.b2DebugDraw.prototype.DrawTransform = function (xf)
 {
@@ -27353,13 +26763,13 @@ box2d.b2DebugDraw.prototype.DrawTransform = function (xf)
 
 	ctx.beginPath();
 	ctx.moveTo(0, 0);
-	ctx.lineTo(1, 0);
+	ctx.lineTo(10, 0);
 	ctx.strokeStyle = box2d.b2Color.RED.MakeStyleString(1);
 	ctx.stroke();
 
 	ctx.beginPath();
 	ctx.moveTo(0, 0);
-	ctx.lineTo(0, 1);
+	ctx.lineTo(0, 10);
 	ctx.strokeStyle = box2d.b2Color.GREEN.MakeStyleString(1);
 	ctx.stroke();
 
@@ -27367,11 +26777,11 @@ box2d.b2DebugDraw.prototype.DrawTransform = function (xf)
 };
 
 /**
- * @export 
- * @return {void} 
- * @param {box2d.b2Vec2} p 
- * @param {number} size 
- * @param {box2d.b2Color} color 
+ * @export
+ * @return {void}
+ * @param {box2d.b2Vec2} p
+ * @param {number} size
+ * @param {box2d.b2Color} color
  */
 box2d.b2DebugDraw.prototype.DrawPoint = function (p, size, color)
 {
@@ -27385,11 +26795,11 @@ box2d.b2DebugDraw.prototype.DrawPoint = function (p, size, color)
 }
 
 /**
- * @export 
- * @param {number} x 
- * @param {number} y 
+ * @export
+ * @param {number} x
+ * @param {number} y
  * @param {string} format
- * @param {...string|number} var_args 
+ * @param {...string|number} var_args
  */
 box2d.b2DebugDraw.prototype.DrawString = function (x, y, format, var_args)
 {
@@ -27409,11 +26819,11 @@ box2d.b2DebugDraw.prototype.DrawString = function (x, y, format, var_args)
 box2d.b2DebugDraw.prototype.DrawString.s_color = new box2d.b2Color(0.9, 0.6, 0.6);
 
 /**
- * @export 
- * @param {number} x 
- * @param {number} y 
+ * @export
+ * @param {number} x
+ * @param {number} y
  * @param {string} format
- * @param {...string|number} var_args 
+ * @param {...string|number} var_args
  */
 box2d.b2DebugDraw.prototype.DrawStringWorld = function (x, y, format, var_args)
 {
@@ -27452,10 +26862,10 @@ box2d.b2DebugDraw.prototype.DrawStringWorld.s_cc = new box2d.b2Vec2();
 box2d.b2DebugDraw.prototype.DrawStringWorld.s_color = new box2d.b2Color(0.5, 0.9, 0.5);
 
 /**
- * @export 
+ * @export
  * @return {void} 
- * @param {box2d.b2AABB} aabb 
- * @param {box2d.b2Color} color 
+ * @param {box2d.b2AABB} aabb
+ * @param {box2d.b2Color} color
  */
 box2d.b2DebugDraw.prototype.DrawAABB = function (aabb, color)
 {
@@ -27522,7 +26932,7 @@ CG.Entity.extend('B2DEntity', {
      * @return {*}
      */
 
-    init:function (name, image, world, x, y, scale) {
+    init: function (name, image, world, x, y, scale) {
         this._super()
         this.instanceOf = 'B2DEntity'
         this.setImage(image)
@@ -27555,23 +26965,14 @@ CG.Entity.extend('B2DEntity', {
          * @property id
          * @type {Object}
          */
-        this.id = {name:name, uid:0}
+        this.id = {name: name, uid: 0}
         /**
          * @property world
          * @type {b2World}
          */
         this.world = world
-        /**
-         * @property xhandle
-         * @type {Number}
-         */
-        this.xhandle = (this.width / 2)
-        /**
-         * @property yhandle
-         * @type {Number}
-         */
-        this.yhandle = (this.height / 2)
-        if(!this.bodyDef){
+
+        if (!this.bodyDef) {
             /**
              * @property bodyDef
              * @type {b2BodyDef}
@@ -27589,7 +26990,7 @@ CG.Entity.extend('B2DEntity', {
             this.bodyDef.awake = true
         }
 
-        if(!this.fixDef) {
+        if (!this.fixDef) {
             /**
              * @property fixDef
              * @type {b2FixtureDef}
@@ -27634,7 +27035,7 @@ CG.Entity.extend('B2DEntity', {
      * @param impulse
      * @param source
      */
-    hit:function (impulse, source) {
+    hit: function (impulse, source) {
         this.isHit = true;
         if (this.strength) {
             this.strength -= impulse;
@@ -27643,13 +27044,71 @@ CG.Entity.extend('B2DEntity', {
             }
         }
     },
-    update:function () {
+    update: function () {
     },
-    draw:function () {
+    draw: function () {
 
         Game.renderer.draw(this)
 
+    },
+    /**
+     * @method addVelocity
+     * @param b2Vec2
+     */
+    addVelocity: function (b2Vec2) {
+        var v = this.body.GetLinearVelocity();
+
+        v.SelfAdd(b2Vec2);
+
+        //check for max horizontal and vertical velocities and then set
+        if (Math.abs(v.y) > this.max_ver_vel) {
+            v.y = this.max_ver_vel * v.y / Math.abs(v.y);
+        }
+
+        if (Math.abs(v.x) > this.max_hor_vel) {
+            v.x = this.max_hor_vel * v.x / Math.abs(v.x);
+        }
+
+        //set the new velocity
+        this.body.SetLinearVelocity(v);
+
+//        if (vel.y < 0) {
+//            this.jump = true
+//        }
+    },
+    /**
+     * @method applyImpulse
+     * @param degrees
+     * @param power
+     */
+    applyImpulse: function (degrees, power) {
+        if (this.body) {
+            this.body.ApplyLinearImpulse(new b2Vec2(Math.cos(degrees * CG.Const_PI_180) * power,
+                Math.sin(degrees * CG.Const_PI_180) * power),
+                this.body.GetWorldCenter())
+        }
+    },
+    /**
+     * @method setType
+     * @param b2BodyType
+     */
+    setType: function (b2BodyType) {
+        this.body.SetType(b2BodyType)
+    },
+    /**
+     * @method setPosition
+     * @param b2Vec2
+     */
+    setPosition: function (b2Vec2) {
+        this.body.SetPosition(b2Vec2)
+    },
+    /**
+     * @method getPosition
+     */
+    getPosition: function () {
+        return this.body.GetPosition()
     }
+
 })
 
 
@@ -27897,7 +27356,7 @@ CG.B2DEntity.extend('B2DPolygon', {
      * @param bullet    {Boolean}     bullet option
      * @return {*}
      */
-    init:function (world, name, image, jsonpoly, x, y, scale, b2BodyType, bullet) {
+    init: function (world, name, image, jsonpoly, x, y, scale, b2BodyType, bullet) {
         this._super(name, image, world, x, y, scale)
         this.instanceOf = 'B2DPolygon'
         /**
@@ -27911,16 +27370,6 @@ CG.B2DEntity.extend('B2DPolygon', {
          */
 //        this.jsondata = jsonpoly.data[jsonpoly.name]
         this.jsondata = jsonpoly.data[name]
-        /**
-         * @property xhandle
-          * @type {Number}
-         */
-        this.xhandle = 0
-        /**
-         * @property yhandle
-         * @type {Number}
-         */
-        this.yhandle = 0
         /**
          * @property vecs
          * @type {Array}
@@ -27967,11 +27416,11 @@ CG.B2DEntity.extend('B2DPolygon', {
         for (var i = 0, l = this.vecs.length; i < l; i++) {
             this.bodyShapePoly = new b2PolygonShape
             this.bodyShapePoly.bounce = this.jsondata[i].restitution        //value from physics editor
+            this.makeVecsCentroid(this.vecs[i])
             this.bodyShapePoly.SetAsArray(this.vecs[i], this.vecs[i].length)
             this.fixDef.density = this.jsondata[i].density                  //value from physics editor
             this.fixDef.friction = this.jsondata[i].friction                //value from physics editor
             //this.fixDef.restitution = 0
-            //this.fixDef.density = 10
 
             this.fixDef.shape = this.bodyShapePoly
             this.body.CreateFixture(this.fixDef)
@@ -27985,18 +27434,33 @@ CG.B2DEntity.extend('B2DPolygon', {
      * @method getPolysFromJson
      * @return {Array}
      */
-    getPolysFromJson:function () {
+    getPolysFromJson: function () {
         var vecs = []
         for (var i = 0, l = this.jsondata.length; i < l; i++) {
-            poly = this.jsondata[i].shape
+            var poly = this.jsondata[i].shape
             var temp = []
             for (var i2 = 0, l2 = poly.length; i2 < l2; i2 = i2 + 2) {
-                vec = new b2Vec2(poly[i2] / this.scale, poly[i2 + 1] / this.scale)
+                var vec = new b2Vec2(poly[i2] / this.scale, poly[i2 + 1] / this.scale)
                 temp.push(vec)
             }
             vecs.push(temp)
         }
         return vecs
+    },
+    /**
+     * The origin of the vertices from physicseditor is top/left. This method makes the vecs centroid (centered origin) depending on image size.
+     * @todo put this stuff into getPolysFromJson?
+     *
+     * @method makeVecsCentroid
+     * @param vecs
+     */
+    makeVecsCentroid: function (vecs) {
+        var xcenter = this.xhandle / this.scale,
+            ycenter = this.yhandle / this.scale
+        for (var p = 0, pl = vecs.length; p < pl; p++) {
+            vecs[p].x = vecs[p].x - xcenter
+            vecs[p].y = vecs[p].y - ycenter
+        }
     }
 })
 
@@ -28014,7 +27478,13 @@ CG.B2DEntity.extend('B2DPolygon', {
 //@TODO code cleanup and description
 //@TODO comment to polygon winding order for clipper (outer == CW; holes == CCW)
 
-//@TODO known pol2tri exceptions ;o(: 'Cannot call method 'slice' of undefined', 'poly2tri Intersecting Constraints'
+/*@TODO known pol2tri exceptions ;o(:
+ 'Cannot call method 'slice' of undefined',
+ 'poly2tri Intersecting Constraints',
+ 'poly2tri Invalid Triangle.index() call',
+ '"null" is not an object (evaluating 'pb.y')',
+ poly2tri Invalid Triangle.legalize() call
+*/
 
 CG.B2DEntity.extend('B2DTerrain', {
     /**
@@ -28034,6 +27504,14 @@ CG.B2DEntity.extend('B2DTerrain', {
     init: function (world, name, image, terrainPoly, x, y, scale, b2BodyType, bullet) {
         this._super(name, image, world, x, y, scale)
         this.instanceOf = 'B2DTerrain'
+
+        /**
+         * @description bitmap for terrain
+         * @property bitmap
+         * @type {CG.Bitmap}
+         */
+        this.bitmap = new CG.Bitmap(Game.width, Game.height)
+        this.bitmap.loadImage(image)
         /**
          * @property polys
          * @type {Array}
@@ -28127,16 +27605,16 @@ CG.B2DEntity.extend('B2DTerrain', {
                 this.bodyShapePoly = new b2PolygonShape
                 this.bodyShapePoly.bounce = 0.5
                 this.bodyShapePoly.SetAsArray(this.getPolysFromTriangulation(this.terrainTriangles[i].points_), this.terrainTriangles[i].points_.length)
-                this.fixDef.density = 0.5
-                this.fixDef.friction = 0.5
-                //this.fixDef.restitution = 0
-                //this.fixDef.density = 10
 
                 this.fixDef.shape = this.bodyShapePoly
                 this.body.CreateFixture(this.fixDef)
             }
         } catch (e) {
             console.log('error: createTerrain()', e)
+            console.log(e.message)
+            console.log(e.stack)
+            console.log(this.terrainPoly)
+            console.log(this.terrainTriangles)
         }
     },
     /**
@@ -28152,8 +27630,14 @@ CG.B2DEntity.extend('B2DTerrain', {
     /**
      * @description Using Clipper to clip a hole in a given polygonshape. Important: the outer polygon points have to be in CW orientation, the hole polygons must ordered in CCW
      *
+     * Options:
+     * points - points for clipping,
+     * radius - radius for clipping,
+     * x - x pos for clipping,
+     * y - y pos for clipping
+     *
      * @method clipTerrain
-     * @param opt
+     * @param {object} opt
      */
     clipTerrain: function (opt) {
         var newhole = this.createCircle(opt)
@@ -28192,6 +27676,7 @@ CG.B2DEntity.extend('B2DTerrain', {
 //        this.cleanTerrain()
         this.deleteTerrain()
         this.createTerrain()
+        this.bitmap.clearCircle(opt.x, opt.y, opt.radius)
     },
     /**
      * @description this method uses the Clipper Lighten method to reduce vertices for better triangulation
@@ -28248,6 +27733,12 @@ CG.B2DEntity.extend('B2DTerrain', {
     /**
      * @description creates a ccw wise circle vertices array for clipping
      *
+     * Options:
+     * points - number of points of circle,
+     * radius - radius for circle,
+     * x - x position for circle,
+     * y - y position for circle
+     *
      * @method createCircle
      * @param {object} opts example {points: 16, radius: 30, x: 320, y: 240}
      * @returns {Array}
@@ -28259,6 +27750,37 @@ CG.B2DEntity.extend('B2DTerrain', {
             circleArray.push({x: opts.x + opts.radius * Math.cos(angle * i), y: opts.y + opts.radius * Math.sin(angle * i)})
         }
         return circleArray.reverse()
+    },
+
+    draw: function(){
+
+        Game.renderer.draw(this.bitmap)
+
+    },
+
+    // converts polygons to SVG path string
+    polys2SvgImage: function (poly, scale) {
+        var path = "", i, j;
+        if (!scale)
+            scale = 1;
+        for (i = 0; i < poly.length; i++) {
+            for (j = 0; j < poly[i].length; j++) {
+                if (!j)
+                    path += "M";
+                else
+                    path += "L";
+                path += (poly[i][j].X / scale) + ", " + (poly[i][j].Y / scale);
+            }
+            path += "Z";
+        }
+        return path;
+
+        /*
+         svg = '<svg style="" width="800" height="600">';
+         svg += '<defs><pattern id="back" patternUnits="userSpaceOnUse" width="990" height="534"><image xlink:href="imagetest.png" x="0" y="0" width="990" height="534"/></pattern></defs>';
+         svg += '<path stroke="" fill="url(#back)" stroke-width="" d="' + polys2path(solution_polygons, scale) + '"/>';
+         svg += '</svg>';
+         */
     }
 })
 
@@ -28463,8 +27985,8 @@ CG.B2DEntity.extend('B2DRope', {
         this.fixtureDef.restitution = 0.2
         this.fixtureDef.friction = 0.2
         this.jointDef = new b2RevoluteJointDef()
-        this.jointDef.lowerAngle = -25 / (180 / Math.PI)
-        this.jointDef.upperAngle = 25 / (180 / Math.PI)
+        this.jointDef.lowerAngle = -25 / CG.Const_180_PI
+        this.jointDef.upperAngle = 25 / CG.Const_180_PI
         this.jointDef.enableLimit = true
 
 
@@ -28601,8 +28123,8 @@ CG.B2DEntity.extend('B2DBridge', {
         this.fixtureDef.restitution = 0.2
         this.fixtureDef.friction = 0.2
         this.jointDef = new b2RevoluteJointDef()
-        this.jointDef.lowerAngle = -25 / (180 / Math.PI)
-        this.jointDef.upperAngle = 25 / (180 / Math.PI)
+        this.jointDef.lowerAngle = -25 / CG.Const_180_PI
+        this.jointDef.upperAngle = 25 / CG.Const_180_PI
         this.jointDef.enableLimit = true
 
         for (var i = 0, l = this.segments; i < l; i++) {
@@ -28717,7 +28239,7 @@ CG.Layer.extend('B2DWorld', {
             scale: this.scale,
             canvas: Game.b_canvas,
             ctx: Game.b_ctx,
-            flags: box2d.b2DrawFlags.e_shapeBit | box2d.b2DrawFlags.e_jointBit
+            flags: box2d.b2DrawFlags.e_shapeBit | box2d.b2DrawFlags.e_jointBit | box2d.b2DrawFlags.e_centerOfMassBit
         })
         this.world.SetDebugDraw(debugDraw)
 
@@ -28770,11 +28292,13 @@ CG.Layer.extend('B2DWorld', {
      *
      * @method addCustom
      * @param obj      object    custom B2D object
+     * @return {Object}
      */
     addCustom: function (obj) {
         this.uid = this.uid + 1
         obj.id.uid = this.uid
         this.elements.push(obj)
+        return obj
     },
      /**
      * @description
@@ -28807,6 +28331,7 @@ CG.Layer.extend('B2DWorld', {
      * @param x       {Number}     the x position
      * @param y       {Number}     the y position
      * @param stat    {Boolean}     is the body static or dynamic
+     * @return {CG.B2DRectangle}
      */
     createBox: function (id, image, x, y, stat) {
         this.uid = this.uid + 1
@@ -28824,6 +28349,7 @@ CG.Layer.extend('B2DWorld', {
      * @param id      {String}    id or name to identify
      * @param start   {CG.Point}  start o fline
      * @param end     {CG.Point}  end of line
+     * @return {CG.B2DLine}
      */
     createLine: function (id, start, end) {
         this.uid = this.uid + 1
@@ -28844,6 +28370,7 @@ CG.Layer.extend('B2DWorld', {
      * @param x       {Number}     the x position
      * @param y       {Number}     the y position
      * @param stat    {Boolean}     is the body static or dynamic
+     * @return {CG.B2DCircle}
      */
     createCircle: function (id, image, radius, x, y, stat) {
         this.uid = this.uid + 1
@@ -28867,6 +28394,7 @@ CG.Layer.extend('B2DWorld', {
      * @param y         {Number}     the y position
      * @param stat      {Boolean}     is the body static or dynamic
      * @param bullet    {Boolean}     bullet option
+     * @return {CG.B2DPolygon}
      */
     createPolyBody: function (id, image, jsonpoly, x, y, stat, bullet) {
         this.uid = this.uid + 1
@@ -28888,6 +28416,7 @@ CG.Layer.extend('B2DWorld', {
      * @param y         {Number}     the y position
      * @param stat      {Boolean}     is the body static or dynamic
      * @param bullet    {Boolean}     bullet option
+     * @return {CG.B2DTerrain}
      */
     createTerrain: function (id, image, terrainpoly, x, y, stat, bullet) {
         this.uid = this.uid + 1
@@ -28906,6 +28435,7 @@ CG.Layer.extend('B2DWorld', {
      * @param vertices  {array}      vertices for chainshape CG.Point array
      * @param x         {Number}     the x position
      * @param y         {Number}     the y position
+     * @return {CG.B2DChainShape}
      */
     createChainShape: function (id, vertices, x, y, stat) {
         this.uid = this.uid + 1
@@ -28927,7 +28457,7 @@ CG.Layer.extend('B2DWorld', {
      * @param length        {Number}     the length/width of the bridge
      * @param segments      {Number}     segments of the bridge
      * @param segmentHeight {Number}     height of a segment
-     * @return {*}
+     * @return {CG.B2DBridge}
      */
     createBridge: function (id, image, x, y, length, segments, segmentHeight) {
         this.uid = this.uid + 1
@@ -28949,7 +28479,7 @@ CG.Layer.extend('B2DWorld', {
      * @param length        {Number}     the length/width of the bridge
      * @param segments      {Number}     segments of the bridge
      * @param segmentHeight {Number}     height of a segment
-     * @return {*}
+     * @return {CG.B2DRope}
      */
     createRope: function (id, image, x, y, length, segments, segmentHeight) {
         this.uid = this.uid + 1
@@ -29084,8 +28614,8 @@ CG.Layer.extend('B2DWorld', {
      */
     applyImpulse: function (body, degrees, power) {
         if (body) {
-            body.ApplyLinearImpulse(new b2Vec2(Math.cos(degrees * (Math.PI / 180)) * power,
-                Math.sin(degrees * (Math.PI / 180)) * power),
+            body.ApplyLinearImpulse(new b2Vec2(Math.cos(degrees * CG.Const_PI_180) * power,
+                Math.sin(degrees * CG.Const_PI_180) * power),
                 body.GetWorldCenter());
         }
     },
@@ -29123,6 +28653,385 @@ CG.Layer.extend('B2DWorld', {
     }
 })
 
+
+/**
+ * @description
+ *
+ * CG.B2DFizzXLoader
+ *
+ * @class CG.B2DFizzXLoader
+ * @extends CG.Class
+ */
+
+CG.Class.extend('B2DFizzXLoader', {
+    /**
+     * @constructor
+     * @method init
+     * @param json {string}
+     * @param world {CG.B2DWorld}
+     * @param offsetx {Number}
+     * @param offsety {Number}
+     */
+    init: function (json, world, offsetx, offsety) {
+        /**
+         @property json {string}
+         */
+        this.json = JSON.parse(json, function (key, value) {
+            if (typeof value === "string") {
+                if (value.match(/^[-+]?\d+$/)) {      //check for integer
+                    return parseInt(value)
+                } else if (value.match(/^[-+]?\d+\.\d+$/)) {   //check for float
+                    return parseFloat(value)
+                } else {      //strings
+                    switch (value) {
+                        case "true":
+                            return true
+                            break
+                        case "false":
+                            return false
+                            break
+                        case "null":
+                            return null
+                            break
+                    }
+                }
+            }
+            return value
+        })
+        /**
+         @property world {CG.B2DWorld}
+         */
+        this.world = world
+        /**
+         @property offsetx {Number}
+         */
+        this.offsetx = offsetx
+        /**
+         @property offsety {Number}
+         */
+        this.offsety = offsety
+
+        this.bodiesMap = []
+        this.jointsMap = []
+        this.imageMap = []
+        this.atlasMap = []
+
+        this.loadImages()
+        this.loadBodies()
+        this.loadJoints()
+    },
+    /**
+     * @description
+     * @method loadBodies
+     */
+    loadBodies: function () {
+        console.log('### start bodies')
+        for (var b = 0, lb = this.json.box2d.bodies.body.length; b < lb; b++) {
+            var body = this.json.box2d.bodies.body[b]
+            console.log('body:', body.name, 'image:', body.image, body)
+            var fixtures = body.fixtures.fixture
+            console.log('-- fixtures', fixtures.length)
+            for (var f = 0, fl = fixtures.length; f < fl; f++) {
+                console.log('--- fixture #' + (f + 1), fixtures[f])
+            }
+
+        }
+
+    },
+    /**
+     * @description is this method needed? use MediaAsset loader instead or extend MediaAsset with in game "preloading"?
+     * @method loadImages
+     */
+    loadImages: function () {
+        console.log('### start images')
+        for (var i = 0, li = this.json.box2d.images.image.length; i < li; i++) {
+            var image = this.json.box2d.images.image[i]
+            console.log('-- image #' + ( i + 1 ), image)
+        }
+    },
+    /**
+     * @description
+     * @method loadJoints
+     */
+    loadJoints: function () {
+        console.log('### start joints')
+        for (var j = 0, lj = this.json.box2d.joints.joint.length; j < lj; j++) {
+            var joint = this.json.box2d.joints.joint[j]
+            console.log('-- joint #' + (j + 1), joint)
+        }
+    }
+})
+
+/*
+
+//Example is using LibGDX with the Artemis Entity System Framework
+public class FizzXLoader {
+
+    public float BOX_WORLD_TO = 30f;
+    HashMap bodiesMap;
+    HashMap jointsMap;
+    HashMap imageMap;
+    HashMap atlasMap;
+
+    public void load(String path, World world, float xOffset, float yOffset) {
+        FileHandle fileHandle = Gdx.files.internal(path);
+
+        JsonReader reader = new JsonReader();
+        JsonValue map = reader.parse(fileHandle);
+        bodiesMap = new HashMap();
+        jointsMap = new HashMap();
+        imageMap = new HashMap();
+        atlasMap = new HashMap();
+
+        JsonValue box2dEntry = map.getChild("box2D");
+
+        for (JsonValue entry = box2dEntry; entry != null; entry = entry.next()) {
+
+            if (entry.name.equals("images")) {
+
+                JsonValue joints = entry.getChild("image");
+                for (JsonValue jointJsonValue = joints; jointJsonValue != null; jointJsonValue = jointJsonValue
+                    .next()) {
+                    JsonValue pathJsonValue = jointJsonValue.get("-path");
+                    JsonValue nameJsonValue = jointJsonValue.get("-name");
+                    JsonValue atlasJsonValue = jointJsonValue.get("-atlas");
+                    String atlasString = atlasJsonValue.asString();
+                    if (!atlasString.equals("null")) {
+                        TextureAtlas textureAtlas = new TextureAtlas(
+                            Gdx.files.internal("data/"
+                                + atlasJsonValue.asString() + ".txt"));
+                        String[] splitName = pathJsonValue.asString().split(
+                            "\\.");
+                        atlasMap.put(splitName[0], textureAtlas);
+                    }
+
+                    imageMap.put(nameJsonValue.asString(),
+                        pathJsonValue.asString());
+                }
+            }
+
+            else if (entry.name.equals("bodies")) {
+                JsonValue bodies = entry.getChild("body");
+                for (JsonValue bodyJsonValue = bodies; bodyJsonValue != null; bodyJsonValue = bodyJsonValue
+                    .next()) {
+                    Float xValue = bodyJsonValue.getFloat("-x");
+                    Float yValue = bodyJsonValue.getFloat("-y");
+                    String typeValue = bodyJsonValue.getString("-type");
+                    boolean bulletValue = bodyJsonValue.getBoolean("-bullet");
+                    String nameValue = bodyJsonValue.getString("-name");
+                    String imagePath = bodyJsonValue.getString("-image");
+
+                    imageMap.put(nameValue, imagePath);
+                    JsonValue fixturesValue = bodyJsonValue
+                        .getChild("fixtures");
+
+                    BodyDef bodyDef = new BodyDef();
+
+                    bodyDef.bullet = bulletValue;
+                    bodyDef.position.x = xValue / BOX_WORLD_TO + xOffset;
+                    bodyDef.position.y = yValue / BOX_WORLD_TO + yOffset;
+
+                    if (typeValue.equals("kinematic")) {
+                        bodyDef.type = BodyType.KinematicBody;
+                    } else if (typeValue.equals("static")) {
+                        bodyDef.type = BodyType.StaticBody;
+                    } else if (typeValue.equals("dynamic")) {
+                        bodyDef.type = BodyType.DynamicBody;
+                    }
+
+                    Entity entity = world.createEntity();
+                    world.getManager(TagManager.class).register(nameValue,
+                        entity);
+                    SpatialComponent component = PhysicsFactory
+                        .createBody(bodyDef);
+
+                    entity.addComponent(component);
+                    if (!imagePath.equals("null")) {
+                        String[] splitName = imagePath.split("\\.");
+
+                        if (atlasMap.containsKey(splitName[0])) {
+                            TextureComponent textureComponent = new TextureComponent(
+                                atlasMap.get(splitName[0]).findRegion(
+                                    splitName[0]), new Vector2(0, 0));
+                            entity.addComponent(textureComponent);
+                        }
+                    }
+
+                    entity.addToWorld();
+                    component.name = nameValue;
+                    bodiesMap.put(nameValue, component.body);
+
+                    JsonValue fixtureEntry = fixturesValue.child();
+
+                    for (JsonValue fixture = fixtureEntry; fixture != null; fixture = fixture
+                        .next()) {
+                        String fixtureName = fixture.getString("-name");
+                        String shapeType = fixture.getString("-shapeType");
+                        float friction = fixture.getFloat("-friction");
+                        float restitution = fixture.getFloat("-restitution");
+                        float density = fixture.getFloat("-density");
+
+                        JsonValue vertexValue = fixture.getChild("vertex");
+                        FixtureDef fixtureDef = new FixtureDef();
+                        fixtureDef.density = density;
+                        fixtureDef.restitution = restitution;
+                        fixtureDef.friction = friction;
+
+                        Shape shape = null;
+                        if (shapeType.equals("polygonShape")) {
+                            ArrayList verticesList = new ArrayList();
+
+                            JsonValue vertexEntry = vertexValue;
+
+                            if (vertexEntry != null) {
+
+                                for (JsonValue vertex = vertexEntry; vertex != null; vertex = vertex
+                                    .next()) {
+
+                                    Float vertexX = vertex.getFloat("-x");
+                                    Float vertexY = vertex.getFloat("-y");
+
+                                    Vector2 vector2 = new Vector2();
+                                    vector2.x = vertexX / BOX_WORLD_TO;
+                                    vector2.y = vertexY / BOX_WORLD_TO;
+
+                                    verticesList.add(vector2);
+
+                                }
+                            }
+
+                            shape = new PolygonShape();
+
+                            Vector2[] vertices = new Vector2[verticesList
+                                .size()];
+                            vertices = verticesList.toArray(vertices);
+
+                            float[] floatVertices = new float[vertices.length * 2];
+
+                            ((PolygonShape) shape).set(vertices);
+
+                            fixtureDef.isSensor = fixture
+                                .getBoolean("-isSensor");
+
+                        } else if (shapeType.equals("edgeShape")) {
+                            shape = new ChainShape();
+
+                            ArrayList verticesList = new ArrayList();
+
+                            JsonValue vertexEntry = vertexValue;
+
+                            if (vertexEntry != null) {
+
+                                for (JsonValue vertex = vertexEntry; vertex != null; vertex = vertex
+                                    .next()) {
+                                    JsonValue vertexX = vertex.get("-x");
+                                    JsonValue vertexY = vertex.get("-y");
+
+                                    Vector2 vector2 = new Vector2();
+                                    vector2.x = vertexX.asFloat()
+                                        / BOX_WORLD_TO;
+                                    vector2.y = vertexY.asFloat()
+                                        / BOX_WORLD_TO;
+
+                                    verticesList.add(vector2);
+
+                                }
+                            }
+
+                            Vector2[] vertices = new Vector2[verticesList
+                                .size()];
+                            vertices = verticesList.toArray(vertices);
+
+                            ((ChainShape) shape).createChain(vertices);
+
+                        } else if (shapeType.equals("circleShape")) {
+                            shape = new CircleShape();
+                            JsonValue circleRadiusJsonValue = fixture
+                                .get("-circleRadius");
+                            ((CircleShape) shape)
+                        .setRadius(circleRadiusJsonValue.asFloat()
+                                / BOX_WORLD_TO);
+
+                            float circleX = fixture.getFloat("-circleX");
+                            float circleY = fixture.getFloat("-circleY");
+
+                            ((CircleShape) shape).setPosition(new Vector2(
+                                circleX / BOX_WORLD_TO, circleY
+                                    / BOX_WORLD_TO));
+                            fixtureDef.isSensor = fixture
+                                .getBoolean("-isSensor");
+
+                        }
+
+                        fixtureDef.shape = shape;
+                        PhysicsFactory.createFixture(fixtureDef, component);
+                    }
+
+                }
+            } else if (entry.name.equals("joints")) {
+
+                JsonValue joints = entry.getChild("joint");
+                for (JsonValue jointJsonValue = joints; jointJsonValue != null; jointJsonValue = jointJsonValue
+                    .next()) {
+                    JsonValue nameJsonValue = jointJsonValue.get("-name");
+                    JsonValue typeJsonValue = jointJsonValue.get("-type");
+                    JsonValue collideConnected = jointJsonValue
+                        .get("-collideConnected");
+                    JsonValue xJsonValue = jointJsonValue.get("-x");
+                    JsonValue yJsonValue = jointJsonValue.get("-y");
+                    JsonValue bodyAJsonValue = jointJsonValue.get("-bodyA");
+                    JsonValue bodyBJsonValue = jointJsonValue.get("-bodyB");
+
+                    JointDef jointDef = null;
+                    if (typeJsonValue.asString().equals("RevoluteJoint")) {
+                        jointDef = new RevoluteJointDef();
+                        RevoluteJointDef revoluteJointDef = (RevoluteJointDef) jointDef;
+
+                        Body bodyA = bodiesMap.get(bodyAJsonValue.asString());
+                        Body bodyB = bodiesMap.get(bodyBJsonValue.asString());
+
+                        JsonValue enableLimit = jointJsonValue
+                            .get("-enableLimit");
+                        JsonValue lowerAngle = jointJsonValue
+                            .get("-lowerAngle");
+                        JsonValue upperAngle = jointJsonValue
+                            .get("-upperAngle");
+
+                        revoluteJointDef.enableLimit = enableLimit.asBoolean();
+                        revoluteJointDef.lowerAngle = lowerAngle.asFloat();
+                        revoluteJointDef.upperAngle = upperAngle.asFloat();
+
+                        Vector2 anchor = new Vector2(xJsonValue.asFloat()
+                            / BOX_WORLD_TO, yJsonValue.asFloat()
+                            / BOX_WORLD_TO);
+                        revoluteJointDef.initialize(bodyA, bodyB, anchor);
+
+                    } else if (typeJsonValue.asString().equals("WeldJoint")) {
+                        jointDef = new WeldJointDef();
+                        WeldJointDef weldJointDef = (WeldJointDef) jointDef;
+
+                        Body bodyA = bodiesMap.get(bodyAJsonValue.asString());
+                        Body bodyB = bodiesMap.get(bodyBJsonValue.asString());
+                        Vector2 anchor = new Vector2(xJsonValue.asFloat()
+                            / BOX_WORLD_TO, yJsonValue.asFloat()
+                            / BOX_WORLD_TO);
+                        weldJointDef.initialize(bodyA, bodyB, anchor);
+
+                    }
+
+                    jointDef.collideConnected = collideConnected.asBoolean();
+
+                    Joint joint = PhysicsFactory.createJoint(jointDef);
+
+                    jointsMap.put(nameJsonValue.asString(), joint);
+                }
+
+            }
+
+        }
+    }
+}
+*/
 
 /*! Hammer.JS - v1.0.5 - 2013-04-07
  * http://eightmedia.github.com/hammer.js

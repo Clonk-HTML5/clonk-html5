@@ -1,12 +1,5 @@
-var terrainBody
-var ballOnTerrain = false
-var ballCollideWithTerrain = {}
-var ballOnGold = false
-var ballCollideWithGold = {}
-var spriteNextToRock = false
-var spriteCollideWithRock = {}
-var playerItem = ''
-var playerCollisionWith = {}
+var ballOnTerrain = false, ballCollideWithTerrain = {}, ballOnGold = false, ballCollideWithGold = {}, spriteNextToRock = false, spriteCollideWithRock = {}, playerItem = '', playerCollisionWith = {}
+var terrainBody, clipPoints = 12, clipRadius = 20, b2world, terrainBody, myTerrain
 
 // the Game object
 Game = (function () {
@@ -17,8 +10,8 @@ Game = (function () {
         height: 768,
         width2: 1024 / 2,
         height2: 768 / 2,
-        // bound: new CG.Bound(0, 0, 640, 480).setName('game'),
-        bound: new CG.Bound(0, 0, 1024, 768).setName('game'),
+        bound: new CG.Bound(0, 0, 640, 480).setName('game'),
+        // bound: new CG.Bound(0, 0, 1024, 768).setName('game'),
         canvas: {},
         Camera: {},
         camObj: {},
@@ -48,14 +41,9 @@ Game = (function () {
             Game.asset.addFont('media/font/small.txt', 'small', 'small')
                 .addFont('media/font/abadi_ez.txt', 'abadi')
                 .addImage('media/img/glowball-50.png', 'glowball')
-                .addImage('media/img/ballon.png', 'ballon')
                 .addImage('media/img/terrain.png', 'terrain')
                 .addImage('media/img/terrainTunnel.png', 'terrainTunnel')
-                .addImage('media/img/hunter.png', 'hunter')
-                .addImage('media/img/back1.jpg', 'back1')
-                .addImage('media/img/back3.jpg', 'back3')
                 .addImage('media/img/spritetestphysics.png', 'spritetestphysics')
-                .addImage('media/img/sun.png', 'sun')
                 .addImage('media/img/rock.png', 'rock')
                 .addImage('media/img/redrock.png', 'redrock')
                 .addImage('media/img/haus2.png', 'haus2')
@@ -63,22 +51,10 @@ Game = (function () {
                 .addImage('media/img/gold.png', 'gold')
                 .addImage('media/img/axt.png', 'axt')
                 .addImage('media/img/arrow-25.png', 'arrow-25')
-                .addImage('media/img/exp1.png', 'exp1')
-                .addImage('media/img/exp2.png', 'exp2')
-                .addImage('media/img/exp3.png', 'exp3')
-                .addImage('media/img/exp4.png', 'exp4')
-                .addImage('media/img/exp5.png', 'exp5')
                 .addImage('media/img/expbig1.png', 'bigexplosion')
                 .addImage('media/img/desert_BG.png', 'desert-back')
-
-
-                //tiled map
-                .addJson('media/map/map-advanced-inner-outer.json', 'map1')
-
+                
                 //physics engine
-                .addJson('media/img/ballon.json', 'ballon')
-                .addJson('media/img/rainbow_256.json', 'rainbow_256')
-                .addJson('media/img/powerstar75.json', 'powerstar75')
                 .addJson('media/img/spritetestphysics.json', 'spritetestphysics')
                 .addJson('media/img/gold.json', 'gold')
                 .addJson('media/img/baum2.json', 'baum2')
@@ -109,14 +85,14 @@ Game = (function () {
             ingamemenulayer = new CG.Layer('ingamemenulayer')
 
             //sprite for the background
-            back = new CG.Sprite(Game.asset.getImageByName('desert-back'), new CG.Point(512, 212))
+            var back = new CG.Sprite(Game.asset.getImageByName('desert-back'), new CG.Point(512, 212))
             back.name = 'back'
             mainlayer.addElement(back)
 
             //sprite for the background
-            back = new CG.Sprite(Game.asset.getImageByName('terrainTunnel'), new CG.Point(Game.width2, Game.height2))
-            back.name = 'back'
-            mainlayer.addElement(back)
+            var backTunnel = new CG.Sprite(Game.asset.getImageByName('terrainTunnel'), new CG.Point(Game.width2, Game.height2))
+            backTunnel.name = 'back'
+            mainlayer.addElement(backTunnel)
 
             //create Box2D World
             b2world = new CG.B2DTestbed('box2d-world')
@@ -151,9 +127,9 @@ Game = (function () {
 			*/
 
             //a bitmap that hides the background sprite
-            bitmap = new CG.Bitmap(Game.width, Game.height)
-            bitmap.loadImage(Game.asset.getImageByName('terrain'))
-            mainlayer.addElement(bitmap)
+            // bitmap = new CG.Bitmap(Game.width, Game.height)
+            // bitmap.loadImage(Game.asset.getImageByName('terrain'))
+            // mainlayer.addElement(bitmap)
 
             var terrainPolys =
                 [
@@ -190,8 +166,10 @@ Game = (function () {
                     }
                 ]
 
-            terrainBody = b2world.createTerrain('terrain', false, terrainPolys, 0, 0, box2d.b2BodyType.b2_staticBody, false)
-
+            // terrainBody = b2world.createTerrain('terrain', false, terrainPolys, 0, 0, box2d.b2BodyType.b2_staticBody, false)
+        	myTerrain = new CG.MyTerrain(b2world.world,'terrain', this.asset.getImageByName('terrain'), terrainPolys, 0, 0, 40, box2d.b2BodyType.b2_staticBody, false)
+			terrainBody = b2world.addCustom(myTerrain)
+			
             //add it to a CGLayer
             mainlayer.addElement(b2world)
 
@@ -202,8 +180,9 @@ Game = (function () {
             renderStats = new Stats()
             document.body.appendChild(renderStats.domElement)
 			
-			 Game.camObj = new Game.Camera(0, 0, Game.bound.width, Game.bound.height, Game.width, Game.height);	
-			 Game.camObj.follow(leftplayer, Game.width2, Game.height2)
+			 // Game.camObj = new Game.Camera(0, 0, Game.bound.width, Game.bound.height, Game.width, Game.height);
+			 Game.camObj = new Game.Camera(0, 0, Game.bound.width, Game.bound.height, Game.width, Game.height);		
+			 Game.camObj.follow(leftplayer, Game.width/2, Game.height/2)
 			
             Game.loop()
         },
@@ -216,11 +195,10 @@ Game = (function () {
         },
         update: function () {
             //update here what ever you want
-			Game.camObj.update();
-
 			if(ballOnTerrain === true){
 					if(b2world.checkIfBodyExists(ballCollideWithTerrain)){
-                  	  	bitmap.clearCircle(ballCollideWithTerrain.GetPosition().x * 40 +20,ballCollideWithTerrain.GetPosition().y * 40+20, 40)
+                  	  	//bitmap.clearCircle(ballCollideWithTerrain.GetPosition().x * 40 +20,ballCollideWithTerrain.GetPosition().y * 40+20, 40)
+                  	  	terrainBody.clipTerrain({points: clipPoints, radius: clipRadius, x: ballCollideWithTerrain.GetPosition().x * 40 +20, y: ballCollideWithTerrain.GetPosition().y * 40 +20})
                   	    terrainBody.clipTerrain({points: 16, radius: 40, x: ballCollideWithTerrain.GetPosition().x * 40+20, y: ballCollideWithTerrain.GetPosition().y * 40+20})
                     	b2world.getStaticBodyListAt(ballCollideWithTerrain.GetPosition().x *40+20, ballCollideWithTerrain.GetPosition().y * 40+20, 36, 0)
                     	b2world.deleteBody(ballCollideWithTerrain) 
@@ -251,6 +229,13 @@ Game = (function () {
 						  break;
 						}
 				}
+			}
+
+			Game.camObj.update();
+			if(Game.camObj.xView !== 0 && Game.camObj.yView !== 0){
+				// console.log(-Game.camObj.xView)
+				mainscreen.position.x = -Game.camObj.xView
+				mainscreen.position.y = -Game.camObj.yView
 			}
 
             Game.director.update()
@@ -357,7 +342,7 @@ Game = (function () {
 				
 			}		
 			
-			// update viewportRect
+			// update viewportRect			
 			this.viewportRect.set(this.xView, this.yView);
 			
 			// don't let camera leaves the world's boundary
