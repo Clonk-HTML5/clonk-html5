@@ -1,5 +1,5 @@
 var ballOnTerrain = false, ballCollideWithTerrain = {}, ballOnGold = false, ballCollideWithGold = {}, spriteNextToRock = false, spriteCollideWithRock = {}, playerItem = '', playerCollisionWith = {}
-var terrainBody, clipPoints = 12, clipRadius = 20, b2world, terrainBody, myTerrain
+var terrainBody, clipPoints = 12, clipRadius = 40, b2world, terrainBody, myTerrain
 
 // the Game object
 Game = (function () {
@@ -10,8 +10,8 @@ Game = (function () {
         height: 768,
         width2: 1024 / 2,
         height2: 768 / 2,
-        bound: new CG.Bound(0, 0, 640, 480).setName('game'),
-        // bound: new CG.Bound(0, 0, 1024, 768).setName('game'),
+        //bound: new CG.Bound(0, 0, 640, 480).setName('game'),
+        bound: new CG.Bound(0, 0, 1024, 768).setName('game'),
         canvas: {},
         Camera: {},
         camObj: {},
@@ -44,6 +44,7 @@ Game = (function () {
                 .addImage('media/img/terrain.png', 'terrain')
                 .addImage('media/img/terrainTunnel.png', 'terrainTunnel')
                 .addImage('media/img/spritetestphysics.png', 'spritetestphysics')
+                .addImage('media/img/smallerSprite.png', 'spritetestphysics')
                 .addImage('media/img/rock.png', 'rock')
                 .addImage('media/img/redrock.png', 'redrock')
                 .addImage('media/img/haus2.png', 'haus2')
@@ -98,34 +99,6 @@ Game = (function () {
             b2world = new CG.B2DTestbed('box2d-world')
             b2world.debug = 0
 
-            //create circle element with image
-            //static rocks
-
-            for ( var i = 0; i < 50; i++) {
-                var x = Math.random() * 1024
-                var y = Math.random() * 768
-                if (y < 500) y+=500;
-                b2world.createCircle('rock', Game.asset.getImageByName('rock'), 9, x, y, box2d.b2BodyType.b2_staticBody)
-
-            }
-            for ( var i = 0; i < 50; i++) {
-                var x = Math.random() * 1024
-                var y = Math.random() * 768
-                if (y < 500) y+=500;
-                b2world.createCircle('redrock', Game.asset.getImageByName('redrock'), 9, x, y, box2d.b2BodyType.b2_staticBody)
-
-            }
-
-
-
-            //dynamic glowballs:
-            /*
-            b2world.createCircle('glowball', Game.asset.getImageByName('glowball'), 36, 340, -800, box2d.b2BodyType.b2_dynamicBody)
-            b2world.createCircle('glowball', Game.asset.getImageByName('glowball'), 36, 310, -100, box2d.b2BodyType.b2_dynamicBody)
-            b2world.createCircle('glowball', Game.asset.getImageByName('glowball'), 36, 320, -400, box2d.b2BodyType.b2_dynamicBody)
-            b2world.createCircle('glowball', Game.asset.getImageByName('glowball'), 36, 330, -600, box2d.b2BodyType.b2_dynamicBody)
-			*/
-
             //a bitmap that hides the background sprite
             // bitmap = new CG.Bitmap(Game.width, Game.height)
             // bitmap.loadImage(Game.asset.getImageByName('terrain'))
@@ -170,6 +143,41 @@ Game = (function () {
         	myTerrain = new CG.MyTerrain(b2world.world,'terrain', this.asset.getImageByName('terrain'), terrainPolys, 0, 0, 40, box2d.b2BodyType.b2_staticBody, false)
 			terrainBody = b2world.addCustom(myTerrain)
 			
+			
+			//create circle element with image
+            //static rocks
+
+            for ( var i = 0; i < 50; i++) {
+                var x = Math.random() * 1024
+                var y = Math.random() * 768
+                if (y < 500) y+=500;
+                b2world.createCircle('rock', Game.asset.getImageByName('rock'), 9, x, y, box2d.b2BodyType.b2_staticBody)
+
+            }
+            for ( var i = 0; i < 50; i++) {
+                var x = Math.random() * 1024
+                var y = Math.random() * 768
+                if (y < 500) y+=500;
+                b2world.createCircle('redrock', Game.asset.getImageByName('redrock'), 9, x, y, box2d.b2BodyType.b2_staticBody)
+
+            }
+            
+                    // for ( var i = 0; i < 10; i++) {
+            var x = 500
+            var y = Math.random() * 40
+
+            var water = new CG.B2DWater(b2world.world, 'water', Game.asset.getImageByName('rock'), 9, x, y, b2world.scale, box2d.b2BodyType.b2_dynamicBody)
+			b2world.addCustom(water)
+        // }
+
+            //dynamic glowballs:
+            /*
+            b2world.createCircle('glowball', Game.asset.getImageByName('glowball'), 36, 340, -800, box2d.b2BodyType.b2_dynamicBody)
+            b2world.createCircle('glowball', Game.asset.getImageByName('glowball'), 36, 310, -100, box2d.b2BodyType.b2_dynamicBody)
+            b2world.createCircle('glowball', Game.asset.getImageByName('glowball'), 36, 320, -400, box2d.b2BodyType.b2_dynamicBody)
+            b2world.createCircle('glowball', Game.asset.getImageByName('glowball'), 36, 330, -600, box2d.b2BodyType.b2_dynamicBody)
+			*/
+			
             //add it to a CGLayer
             mainlayer.addElement(b2world)
 
@@ -180,9 +188,8 @@ Game = (function () {
             renderStats = new Stats()
             document.body.appendChild(renderStats.domElement)
 			
-			 // Game.camObj = new Game.Camera(0, 0, Game.bound.width, Game.bound.height, Game.width, Game.height);
-			 Game.camObj = new Game.Camera(0, 0, Game.bound.width, Game.bound.height, Game.width, Game.height);		
-			 Game.camObj.follow(leftplayer, Game.width/2, Game.height/2)
+			 //Game.camObj = new Game.Camera(0, 0, Game.bound.width, Game.bound.height, Game.width, Game.height);		
+			 //Game.camObj.follow(leftplayer, Game.width/2, Game.height/2)
 			
             Game.loop()
         },
@@ -199,7 +206,6 @@ Game = (function () {
 					if(b2world.checkIfBodyExists(ballCollideWithTerrain)){
                   	  	//bitmap.clearCircle(ballCollideWithTerrain.GetPosition().x * 40 +20,ballCollideWithTerrain.GetPosition().y * 40+20, 40)
                   	  	terrainBody.clipTerrain({points: clipPoints, radius: clipRadius, x: ballCollideWithTerrain.GetPosition().x * 40 +20, y: ballCollideWithTerrain.GetPosition().y * 40 +20})
-                  	    terrainBody.clipTerrain({points: 16, radius: 40, x: ballCollideWithTerrain.GetPosition().x * 40+20, y: ballCollideWithTerrain.GetPosition().y * 40+20})
                     	b2world.getStaticBodyListAt(ballCollideWithTerrain.GetPosition().x *40+20, ballCollideWithTerrain.GetPosition().y * 40+20, 36, 0)
                     	b2world.deleteBody(ballCollideWithTerrain) 
                     }
@@ -231,7 +237,7 @@ Game = (function () {
 				}
 			}
 
-			Game.camObj.update();
+			//Game.camObj.update();
 			if(Game.camObj.xView !== 0 && Game.camObj.yView !== 0){
 				// console.log(-Game.camObj.xView)
 				mainscreen.position.x = -Game.camObj.xView
@@ -271,130 +277,3 @@ Game = (function () {
 	
     return Game
 })()
-
-		// possibles axis to move the camera
-		var AXIS = {
-			NONE: "none", 
-			HORIZONTAL: "horizontal", 
-			VERTICAL: "vertical", 
-			BOTH: "both"
-		};
-
-		// Camera constructor
-		function Camera(xView, yView, canvasWidth, canvasHeight, worldWidth, worldHeight)
-		{
-			// position of camera (left-top coordinate)
-			this.xView = xView || 0;
-			this.yView = yView || 0;
-			
-			// distance from followed object to border before camera starts move
-			this.xDeadZone = 0; // min distance to horizontal borders
-			this.yDeadZone = 0; // min distance to vertical borders
-			
-			// viewport dimensions
-			this.wView = canvasWidth;
-			this.hView = canvasHeight;			
-			
-			// allow camera to move in vertical and horizontal axis
-			this.axis = AXIS.BOTH;	
-		
-			// object that should be followed
-			this.followed = null;
-			
-			// rectangle that represents the viewport
-			this.viewportRect = new Game.Rectangle(this.xView, this.yView, this.wView, this.hView);				
-								
-			// rectangle that represents the world's boundary (room's boundary)
-			this.worldRect = new Game.Rectangle(0, 0, worldWidth, worldHeight);
-			
-		}
-
-		// gameObject needs to have "x" and "y" properties (as world(or room) position)
-		Camera.prototype.follow = function(gameObject, xDeadZone, yDeadZone)
-		{		
-			this.followed = gameObject;	
-			this.xDeadZone = xDeadZone;
-			this.yDeadZone = yDeadZone;
-		}					
-		
-		Camera.prototype.update = function()
-		{
-			// keep following the player (or other desired object)
-			if(this.followed != null)
-			{		
-				if(this.axis == AXIS.HORIZONTAL || this.axis == AXIS.BOTH)
-				{		
-					// moves camera on horizontal axis based on followed object position
-					if(this.followed.body.GetPosition().x * 40 - this.xView  + this.xDeadZone > this.wView)
-						this.xView = this.followed.body.GetPosition().x * 40 - (this.wView - this.xDeadZone);
-					else if(this.followed.body.GetPosition().x * 40  - this.xDeadZone < this.xView)
-						this.xView = this.followed.body.GetPosition().x * 40  - this.xDeadZone;
-					
-				}
-				if(this.axis == AXIS.VERTICAL || this.axis == AXIS.BOTH)
-				{
-					// moves camera on vertical axis based on followed object position
-					if(this.followed.body.GetPosition().y * 40 - this.yView + this.yDeadZone > this.hView)
-						this.yView = this.followed.body.GetPosition().y * 40 - (this.hView - this.yDeadZone);
-					else if(this.followed.body.GetPosition().y * 40 - this.yDeadZone < this.yView)
-						this.yView = this.followed.body.GetPosition().y * 40 - this.yDeadZone;
-				}						
-				
-			}		
-			
-			// update viewportRect			
-			this.viewportRect.set(this.xView, this.yView);
-			
-			// don't let camera leaves the world's boundary
-			if(!this.viewportRect.within(this.worldRect))
-			{
-				if(this.viewportRect.left < this.worldRect.left)
-					this.xView = this.worldRect.left;
-				if(this.viewportRect.top < this.worldRect.top)					
-					this.yView = this.worldRect.top;
-				if(this.viewportRect.right > this.worldRect.right)
-					this.xView = this.worldRect.right - this.wView;
-				if(this.viewportRect.bottom > this.worldRect.bottom)					
-					this.yView = this.worldRect.bottom - this.hView;
-			}
-			
-		}	
-		
-		// add "class" Camera to our Game object
-		Game.Camera = Camera;
-
-		function Rectangle(left, top, width, height){
-			this.left = left || 0;
-			this.top = top || 0;
-            this.width = width || 0;
-			this.height = height || 0;
-			this.right = this.left + this.width;
-			this.bottom = this.top + this.height;
-		}
-		
-		Rectangle.prototype.set = function(left, top, /*optional*/width, /*optional*/height){
-			this.left = left;
-            this.top = top;
-            this.width = width || this.width;
-            this.height = height || this.height
-            this.right = (this.left + this.width);
-            this.bottom = (this.top + this.height);
-		}
-		
-		Rectangle.prototype.within = function(r) {
-			return (r.left <= this.left && 
-					r.right >= this.right &&
-					r.top <= this.top && 
-					r.bottom >= this.bottom);
-		}		
-		
-		Rectangle.prototype.overlaps = function(r) {
-			return (this.left < r.right && 
-					r.left < this.right && 
-					this.top < r.bottom &&
-					r.top < this.bottom);
-		}
-
-		// add "class" Rectangle to our Game object
-		Game.Rectangle = Rectangle;
-

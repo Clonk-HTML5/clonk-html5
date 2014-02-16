@@ -17,7 +17,7 @@ CG.B2DPolygon.extend('B2DPlayer', {
         this.linearDamping = 0
         this.angularDamping = 0
 
-        this.jump = false
+        this.playerJump = false
         this.max_hor_vel = 11
         this.max_ver_vel = 11
 
@@ -48,9 +48,9 @@ CG.B2DPolygon.extend('B2DPlayer', {
         //set the new velocity
         this.body.SetLinearVelocity(v);
 
-//        if (vel.y < 0) {
-//            this.jump = true
-//        }
+       // if (vel.y < 0) {
+           // this.playerJump = true
+       // }
     },
     applyImpulse: function (degrees, power) {
         if (this.body) {
@@ -58,6 +58,13 @@ CG.B2DPolygon.extend('B2DPlayer', {
                 Math.sin(degrees * (Math.PI / 180)) * power),
                 this.body.GetWorldCenter());
         }
+    },    
+    update: function () {
+        this._super()
+        // var v = this.body.GetLinearVelocity();
+		       // if (v.y = 0) {
+		           // this.playerJump = false
+		       // }
     }
 })
 

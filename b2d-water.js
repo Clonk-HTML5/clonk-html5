@@ -1,0 +1,151 @@
+/**
+ * @description
+ *
+ * B2DCircle is a simple b2CircleShape wrapper element with basic physics properties.
+ *
+ * @class CG.B2DWater
+ * @extends CG.B2DEntity
+ */
+
+CG.B2DEntity.extend('B2DWater', {
+    /**
+     * @method init
+     * @constructor
+     * @param world     {Object}      reference to world of B2DWorld
+     * @param name      {String}      id or name to identify
+     * @param image     {mixed}       path to image, image or atlasimage from asset
+     * @param radius    {Number}     json file from PhysicsEditor from asset
+     * @param x         {Number}     the x position
+     * @param y         {Number}     the y position
+     * @param scale     {Number}     the world scale of B2DWorld
+     * @param b2BodyType      {box2d.b2BodyType}     Box2D bodytype constant
+     * @return {*}
+     */
+    init:function (world, name, image, radius, x, y, scale, b2BodyType) {
+        this._super()
+        this.instanceOf = 'B2DWater'
+        
+        this.bitmap = new CG.Bitmap(9, 9)
+	   	// this.bitmap.loadImage(image)
+	   	// this.bitmap.image = this.bitmap.filterImage(this.bitmap.convolute, image,
+		  // [ 1/9, 1/9, 1/9,
+		    // 1/9, 1/9, 1/9,
+		    // 1/9, 1/9, 1/9 ]
+		// )
+	   	this.bitmap.setImage(this.bitmap.filterImage(this.bitmap.convolute, image,
+		  [ 1/9, 1/9, 1/9,
+		    1/9, 1/9, 1/9,
+		    1/9, 1/9, 1/9 ]
+		))
+		
+		// console.log(this.bitmap)
+	   	// console.log(this.bitmap.filterImage(this.bitmap.convolute, image,
+		  // [ 1/9, 1/9, 1/9,
+		    // 1/9, 1/9, 1/9,
+		    // 1/9, 1/9, 1/9 ]
+		// ))
+                // this.setImage(image)
+        /**
+         * @property body
+         * @type {b2Body}
+         */
+        this.body = {}
+        /**
+         * @property alpha
+         * @type {Number}
+         */
+        this.alpha = 1
+        /**
+         * @property x
+         * @type {Number}
+         */
+        this.x = x
+        /**
+         * @property y
+         * @type {Number}
+         */
+        this.y = y
+        /**
+         * @property scale
+         * @type {Number}
+         */
+        this.scale = scale
+        /**
+         * @property id
+         * @type {Object}
+         */
+        this.id = {name: name, uid: 0}
+        /**
+         * @property world
+         * @type {b2World}
+         */
+        this.world = world
+
+        if (!this.bodyDef) {
+            /**
+             * @property bodyDef
+             * @type {b2BodyDef}
+             */
+            this.bodyDef = new b2BodyDef
+            /**
+             * @property bodyDef.alowSleep
+             * @type {Boolean}
+             */
+            this.bodyDef.allowSleep = true
+            /**
+             * @property bodyDef.awake
+             * @type {Boolean}
+             */
+            this.bodyDef.awake = true
+        }
+
+        // console.log(this.image)
+        /**
+         * @property radius
+         * @type {Number}
+         */
+        this.radius = radius
+        /**
+         * @property bodyDef.type
+         * @type {box2d.b2BodyType.b2_staticBody/box2d.b2BodyType.b2_dynamicBody/box2d.b2BodyType.b2_kinematicBody/box2d.b2BodyType.b2_bulletBody}
+         */
+        this.bodyDef.type = b2BodyType || box2d.b2BodyType.b2_staticBody
+
+        /**
+         * @property bodyDef.position.x
+         * @type {Number}
+         */
+        this.bodyDef.position.x = this.x / this.scale
+        /**
+         * @property bodyDef.position.y
+         * @type {Number}
+         */
+        this.bodyDef.position.y = this.y / this.scale
+        /**
+         * @property bdyDef.userData
+         * @type {*}
+         */
+        this.bodyDef.userData = this.id
+        /**
+         * @property fixDef.shape
+         * @type {b2CircleShape}
+         */
+        this.fixDef.shape = new b2CircleShape(this.radius / this.scale)
+        this.fixDef.density=3;
+        this.fixDef.friction=0.4;
+        this.fixDef.restitution=0;
+
+        /**
+         * @property body
+         * @type {b2Body}
+         */
+        this.body = this.world.CreateBody(this.bodyDef)
+        this.body.CreateFixture(this.fixDef)
+
+
+        return this
+
+    },
+})
+
+

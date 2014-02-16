@@ -7,9 +7,10 @@ if(typeof KeyboardJS !== 'undefined'){
 				b2world.createCircle('glowball', Game.asset.getImageByName('glowball'), 40, mousex, mousey, box2d.b2BodyType.b2_dynamicBody)
 			});
 			KeyboardJS.on('c', function(){
-                    bitmap.clearCircle(mousex, mousey, 40)
-                    terrainBody.clipTerrain({points: 16, radius: 40, x: mousex, y: mousey})
-                    b2world.getStaticBodyListAt(mousex,mousey,34,0)
+//                    bitmap.clearCircle(mousex, mousey, 40)
+//                    terrainBody.clipTerrain({points: 16, radius: 40, x: mousex, y: mousey})
+                    terrainBody.clipTerrain({points: clipPoints, radius: clipRadius, x: mousex, y: mousey})
+                    b2world.getStaticBodyListAt(mousex,mousey,36,0)
 			});
 			KeyboardJS.on('o', function(){
                     if (b2world.debug == 0 ) {
@@ -55,13 +56,19 @@ if(typeof KeyboardJS !== 'undefined'){
 				leftplayer.addVelocity(new b2Vec2(1, 0))
 			});
 			KeyboardJS.on('w', function(){
-				leftplayer.addVelocity(new b2Vec2(0, -5))
+				if(leftplayer.playerJump === false){
+					leftplayer.addVelocity(new b2Vec2(0, -5))
+				}
 			});
 			KeyboardJS.on('w + a', function(){
+				if(leftplayer.playerJump === false){
 				leftplayer.addVelocity(new b2Vec2(-1, -5))
+				}
 			});
 			KeyboardJS.on('w + d', function(){
+				if(leftplayer.playerJump === false){
 				leftplayer.addVelocity(new b2Vec2(1, -5))
+				}
 			});
 			KeyboardJS.on('s', function(){
 				leftplayer.addVelocity(new b2Vec2(0, 3))
@@ -81,33 +88,41 @@ if(typeof KeyboardJS !== 'undefined'){
 			});
 			KeyboardJS.on('q + d', function () {
 			  		// console.log('d down')
-			  			bitmap.clearCircle(leftplayer.body.GetPosition().x * 40 +40,leftplayer.body.GetPosition().y * 40+18, 40)
-	                    terrainBody.clipTerrain({points: 16, radius: 40, x: leftplayer.body.GetPosition().x * 40+40, y: leftplayer.body.GetPosition().y * 40+18})
-	                    b2world.getStaticBodyListAt(leftplayer.body.GetPosition().x *40+40, leftplayer.body.GetPosition().y * 40+18, 36, 0)
+//			  			bitmap.clearCircle(leftplayer.body.GetPosition().x * 40 +40,leftplayer.body.GetPosition().y * 40+18, 40)
+//	                    terrainBody.clipTerrain({points: 16, radius: 40, x: leftplayer.body.GetPosition().x * 40+40, y: leftplayer.body.GetPosition().y * 40+18})
+                terrainBody.clipTerrain({points: clipPoints, radius: clipRadius, x: leftplayer.body.GetPosition().x * 40 +40, y: leftplayer.body.GetPosition().y * 40 +18})
+                b2world.getStaticBodyListAt(leftplayer.body.GetPosition().x *40+40, leftplayer.body.GetPosition().y * 40+18, 36, 0)
 			});
 			KeyboardJS.on('q + s + d', function () {
 			  		// console.log('s&d down')
-			  			bitmap.clearCircle(leftplayer.body.GetPosition().x * 40 +40,leftplayer.body.GetPosition().y * 40+25, 40)
-	                    terrainBody.clipTerrain({points: 16, radius: 40, x: leftplayer.body.GetPosition().x * 40+40, y: leftplayer.body.GetPosition().y * 40+25})
-	                    b2world.getStaticBodyListAt(leftplayer.body.GetPosition().x *40+40, leftplayer.body.GetPosition().y * 40+25, 36, 0)
+//			  			bitmap.clearCircle(leftplayer.body.GetPosition().x * 40 +40,leftplayer.body.GetPosition().y * 40+25, 40)
+//	                    terrainBody.clipTerrain({points: 16, radius: 40, x: leftplayer.body.GetPosition().x * 40+40, y: leftplayer.body.GetPosition().y * 40+25})
+                terrainBody.clipTerrain({points: clipPoints, radius: clipRadius, x: leftplayer.body.GetPosition().x * 40 +40, y: leftplayer.body.GetPosition().y * 40 +25})
+                b2world.getStaticBodyListAt(leftplayer.body.GetPosition().x *40+40, leftplayer.body.GetPosition().y * 40+25, 36, 0)
 			});
 			KeyboardJS.on('q + s', function () {
 			  		// console.log('s down')
-	                    bitmap.clearCircle(leftplayer.body.GetPosition().x * 40+25,leftplayer.body.GetPosition().y * 40+40, 40)
-	                    terrainBody.clipTerrain({points: 16, radius: 40, x: leftplayer.body.GetPosition().x * 40+25, y: leftplayer.body.GetPosition().y * 40+40})
-	                    b2world.getStaticBodyListAt(leftplayer.body.GetPosition().x *40+25, leftplayer.body.GetPosition().y * 40+40, 36, 0)
+//	                    bitmap.clearCircle(leftplayer.body.GetPosition().x * 40+25,leftplayer.body.GetPosition().y * 40+40, 40)
+//	                    terrainBody.clipTerrain({points: 16, radius: 40, x: leftplayer.body.GetPosition().x * 40+25, y: leftplayer.body.GetPosition().y * 40+40})
+                terrainBody.clipTerrain({points: clipPoints, radius: clipRadius, x: leftplayer.body.GetPosition().x * 40 +25, y: leftplayer.body.GetPosition().y * 40 +40})
+
+                b2world.getStaticBodyListAt(leftplayer.body.GetPosition().x *40+25, leftplayer.body.GetPosition().y * 40+40, 36, 0)
 			});
 			KeyboardJS.on('q + s + a', function () {
 			  		// console.log('sa down')
-	                    bitmap.clearCircle(leftplayer.body.GetPosition().x * 40 ,leftplayer.body.GetPosition().y * 40+30, 40)
-	                    terrainBody.clipTerrain({points: 16, radius: 40, x: leftplayer.body.GetPosition().x * 40, y: leftplayer.body.GetPosition().y * 40+30})
-	                    b2world.getStaticBodyListAt(leftplayer.body.GetPosition().x *40, leftplayer.body.GetPosition().y * 40+30, 36, 0)
+//	                    bitmap.clearCircle(leftplayer.body.GetPosition().x * 40 ,leftplayer.body.GetPosition().y * 40+30, 40)
+//	                    terrainBody.clipTerrain({points: 16, radius: 40, x: leftplayer.body.GetPosition().x * 40, y: leftplayer.body.GetPosition().y * 40+30})
+                terrainBody.clipTerrain({points: clipPoints, radius: clipRadius, x: leftplayer.body.GetPosition().x * 40, y: leftplayer.body.GetPosition().y * 40 +30})
+
+                b2world.getStaticBodyListAt(leftplayer.body.GetPosition().x *40, leftplayer.body.GetPosition().y * 40+30, 36, 0)
 			});
 			KeyboardJS.on('q + a', function() {
 			  		// console.log('a down')
-	                    bitmap.clearCircle(leftplayer.body.GetPosition().x * 40 ,leftplayer.body.GetPosition().y * 40+20, 40)
-	                    terrainBody.clipTerrain({points: 16, radius: 40, x: leftplayer.body.GetPosition().x * 40, y: leftplayer.body.GetPosition().y * 40+20})
-	                    b2world.getStaticBodyListAt(leftplayer.body.GetPosition().x *40, leftplayer.body.GetPosition().y * 40+20, 36, 0)
+//	                    bitmap.clearCircle(leftplayer.body.GetPosition().x * 40 ,leftplayer.body.GetPosition().y * 40+20, 40)
+//	                    terrainBody.clipTerrain({points: 16, radius: 40, x: leftplayer.body.GetPosition().x * 40, y: leftplayer.body.GetPosition().y * 40+20})
+                terrainBody.clipTerrain({points: clipPoints, radius: clipRadius, x: leftplayer.body.GetPosition().x * 40, y: leftplayer.body.GetPosition().y * 40 +20})
+
+                b2world.getStaticBodyListAt(leftplayer.body.GetPosition().x *40, leftplayer.body.GetPosition().y * 40+20, 36, 0)
 			});
 			KeyboardJS.on('q + w', function(){
 				

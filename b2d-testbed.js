@@ -72,6 +72,11 @@ CG.B2DWorld.extend('B2DTestbed', {
             	if (typeof idA != 'undefined' && typeof idB != 'undefined' && idA.GetUserData() !== null && idB.GetUserData() !== null) {                           
                 //console.log("idA"+ idA.GetUserData().name)
                 //console.log(idB.GetUserData().name)
+                	// if ((idA.GetUserData().name === 'spritetestphysics' && idB.GetUserData().name === 'terrain') || 
+	                // (idB.GetUserData().name === 'spritetestphysics' && idA.GetUserData().name === 'terrain')) {
+						// // console.log(idA, idB)  
+						// playerOnTerrain = true        
+	                // }
 	                if ((idA.GetUserData().name === 'spritetestphysics' && idB.GetUserData().name === 'redrock') || 
 	                (idB.GetUserData().name === 'spritetestphysics' && idA.GetUserData().name === 'redrock')) {
 	                		spriteNextToRock = true
@@ -135,6 +140,10 @@ CG.B2DWorld.extend('B2DTestbed', {
 						buttonhaus.visible = false
 						playerCollisionWith = {}
 	                }
+	                // if ((idA.GetUserData().name === 'spritetestphysics' && idB.GetUserData().name === 'terrain') || 
+	                // (idB.GetUserData().name === 'spritetestphysics' && idA.GetUserData().name === 'terrain')) { 
+						// playerOnTerrain = false        
+	                // }
             },
             PostSolve: function (idA, idB, impulse) {
             },
