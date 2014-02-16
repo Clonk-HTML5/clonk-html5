@@ -9925,8 +9925,8 @@ CG.Class.extend('CanvasRenderer', {
                     Game.b_ctx.drawImage(renderObject.image, renderObject.xoffset, renderObject.yoffset, renderObject.cutwidth, renderObject.cutheight, 0 - renderObject.xhandle, 0 - renderObject.yhandle, renderObject.cutwidth, renderObject.cutheight)
                 } else if(renderObject.bitmap){
                 	Game.b_ctx.rotate(renderObject.body.GetAngleRadians())
-                	renderObject.bitmap.bitmap_ctx.putImageData(renderObject.bitmap.image, 0 - renderObject.bitmap.xhandle, 0 - renderObject.bitmap.yhandle);
-                    Game.b_ctx.drawImage(renderObject.bitmap.bitmap_ctx, 0 - renderObject.bitmap.xhandle, 0 - renderObject.bitmap.yhandle, renderObject.bitmap.width, renderObject.bitmap.height)
+                    Game.b_ctx.drawImage(renderObject.bitmap.image, 0 - renderObject.bitmap.xhandle, 0 - renderObject.bitmap.yhandle, renderObject.bitmap.width, renderObject.bitmap.height)
+                    Game.b_ctx.putImageData(renderObject.bitmap.filterdImage, renderObject.body.GetPosition().x * renderObject.scale - 8, renderObject.body.GetPosition().y * renderObject.scale - 8);
                 } else {
                     Game.b_ctx.rotate(renderObject.body.GetAngleRadians())
                     Game.b_ctx.drawImage(renderObject.image, 0 - renderObject.xhandle, 0 - renderObject.yhandle, renderObject.image.width, renderObject.image.height)
@@ -11530,6 +11530,7 @@ CG.Entity.extend('Bitmap', {
         Game.renderer.draw(this)
 
     },
+    
     /**
      * @method filterImage
      */
@@ -11539,6 +11540,15 @@ CG.Entity.extend('Bitmap', {
 	    args.push(arguments[i])
 	  }
 	  return filter.apply(this, args)
+	},
+	brightness:function(pixels, adjustment) {
+	  var d = pixels.data;
+	  for (var i=0; i<d.length; i+=4) {
+	    d[i] += adjustment;
+	    d[i+1] += adjustment;
+	    d[i+2] += adjustment;
+	  }
+	  return pixels;
 	},
 	 /**
      * @method convolute Filter

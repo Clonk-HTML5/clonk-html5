@@ -26,17 +26,17 @@ CG.B2DEntity.extend('B2DWater', {
         this.instanceOf = 'B2DWater'
         
         this.bitmap = new CG.Bitmap(9, 9)
-	   	// this.bitmap.loadImage(image)
+	   	this.bitmap.loadImage(image)
 	   	// this.bitmap.image = this.bitmap.filterImage(this.bitmap.convolute, image,
 		  // [ 1/9, 1/9, 1/9,
 		    // 1/9, 1/9, 1/9,
 		    // 1/9, 1/9, 1/9 ]
 		// )
-	   	this.bitmap.setImage(this.bitmap.filterImage(this.bitmap.convolute, image,
+	   	this.bitmap.filterdImage = this.bitmap.filterImage(this.bitmap.convolute, image,
 		  [ 1/9, 1/9, 1/9,
 		    1/9, 1/9, 1/9,
 		    1/9, 1/9, 1/9 ]
-		))
+		)
 		
 		// console.log(this.bitmap)
 	   	// console.log(this.bitmap.filterImage(this.bitmap.convolute, image,
